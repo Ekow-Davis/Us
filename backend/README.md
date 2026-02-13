@@ -13,17 +13,21 @@ backend/
 │   │   └── database.py         # DB engine & session
 │   │
 │   ├── models/                 # SQLAlchemy models
-│   │   ├── user.py
-│   │   ├── profile.py
-│   │   ├── memory.py
-│   │   ├── media.py
-│   │   ├── tag.py
-│   │   ├── note.py
-│   │   └── thinking_signal.py
+|   |   ├── user.py
+|   |   ├── vault.py              
+|   |   ├── vault_membership.py   
+|   |   ├── memory.py
+|   |   ├── memory_media.py       
+|   |   ├── tag.py
+|   |   ├── memory_tag.py         
+|   |   ├── seed.py               
+|   |   ├── seed_view.py          
+|   |   ├── journal_entry.py      
+|   |   ├── thinking_signal.py
+|   |   ├── monthly_bloom.py      
 │   │
 │   ├── schemas/                # Pydantic schemas
 │   │   ├── user.py
-│   │   ├── profile.py
 │   │   ├── memory.py
 │   │   ├── note.py
 │   │   └── auth.py
@@ -32,7 +36,6 @@ backend/
 │   │   ├── deps.py             # Shared dependencies
 │   │   ├── auth.py
 │   │   ├── users.py
-│   │   ├── profiles.py
 │   │   ├── memories.py
 │   │   ├── notes.py
 │   │   ├── signals.py
@@ -55,6 +58,7 @@ backend/
 ├── migrations/                 # Alembic migrations
 │
 ├── requirements.txt
+├── main.py
 ├── .env
 ├── alembic.ini
 └── README.md
