@@ -55,3 +55,9 @@ backend/
 └── README.md
 
 ```
+
+Running command, also do it in /backend
+
+```
+uvicorn app.main:app --reload
+```
