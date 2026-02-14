@@ -2,9 +2,13 @@ from fastapi import FastAPI
 from app.api.auth import router as auth_router
 from app.api.vaults import router as vault_router
 from app.api.memories import router as memory_router
+from app.api.media import router as media_router
 
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Shared Memory Vault API")
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")
@@ -14,3 +18,4 @@ def root():
 app.include_router(auth_router)
 app.include_router(vault_router)
 app.include_router(memory_router)
+app.include_router(media_router)

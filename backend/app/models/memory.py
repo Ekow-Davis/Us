@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import String, Text, DateTime, ForeignKey, Boolean, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from app.config.database import Base
+from sqlalchemy.orm import relationship
+
 
 
 class Memory(Base):
@@ -66,4 +68,10 @@ class Memory(Base):
     is_deleted: Mapped[bool] = mapped_column(
         Boolean,
         default=False
+    )
+    
+    media = relationship(
+        "MemoryMedia",
+        backref="memory",
+        cascade="all, delete-orphan"
     )

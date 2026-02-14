@@ -1,6 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
+
+
+class MediaResponse(BaseModel):
+    id: uuid.UUID
+    file_url: str
+    file_type: str
+
+    class Config:
+        from_attributes = True
 
 
 class MemoryCreate(BaseModel):
@@ -24,6 +33,7 @@ class MemoryResponse(BaseModel):
     created_at: datetime
     edited_at: datetime | None
     is_seed: bool
+    media: list[MediaResponse] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
