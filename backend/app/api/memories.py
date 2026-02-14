@@ -126,3 +126,44 @@ def update_memory(
     db.refresh(memory)
 
     return memory
+
+@router.delete("/{memory_id}")
+def delete_memory(
+    memory_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vault_id = get_user_vault(db, current_user.id)
+
+    memory = db.query(Memory).filter(
+        Memory.id == memory_id,
+        Memory.vault_id == vault_id,
+        Memory.is_deleted == False
+    ).first()
+
+    if not memory:
+        raise HTTPException(
+            status_code=404,
+            detail="Memory not found"
+        )
+
+    # Only creator can delete
+    if memory.created_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only creator can delete memory"
+        )
+
+    # Enforce 8-hour rule
+    if datetime.utcnow() > memory.editable_until:
+        raise HTTPException(
+            status_code=403,
+            detail="Memory delete window expired"
+        )
+
+    memory.is_deleted = True
+    memory.edited_at = datetime.utcnow()
+
+    db.commit()
+
+    return {"message": "Memory withdrawn successfully"}
