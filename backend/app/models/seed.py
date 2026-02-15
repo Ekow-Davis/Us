@@ -38,13 +38,24 @@ class Seed(Base):
         default=datetime.utcnow
     )
 
-    is_archived: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False
+    edited_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="scheduled"  # scheduled | bloomed | cancelled
     )
 
     views = relationship(
         "SeedView",
+        backref="seed",
+        cascade="all, delete-orphan"
+    )
+
+    media = relationship(
+        "SeedMedia",
         backref="seed",
         cascade="all, delete-orphan"
     )
