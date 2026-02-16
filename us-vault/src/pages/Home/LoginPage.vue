@@ -24,7 +24,7 @@ const togglePassword = () => {
 // Fake login handler (no API)
 const handleLogin = () => {
   if (!loginEmail.value || !loginPassword.value) return
-  router.push('./DashboardPage')
+  router.push('/dashboard')
 }
 
 // Fake register handler (no API)
@@ -33,7 +33,7 @@ const handleRegister = () => {
       !registerForm.value.password ||
       !registerForm.value.display_name) return
 
-  router.push('./RegistrationTransferPage')
+  router.push('/registration-transfer')
 }
 </script>
 
@@ -121,6 +121,7 @@ const handleRegister = () => {
 
     <!-- PANELS -->
     <div class="panels-container">
+      <!-- Login PANEL -->
       <div class="panel left-panel">
         <div class="content">
           <h3>New here?</h3>
@@ -129,9 +130,10 @@ const handleRegister = () => {
             Sign Up
           </button>
         </div>
-        <img src="../Images/Login/education-blue.svg" class="image" />
+        <img src="../../../public/images/undraw_spread-love_0ekp.svg" class="image" />
       </div>
 
+      <!-- Register PANEL -->
       <div class="panel right-panel">
         <div class="content">
           <h3>Already a member?</h3>
@@ -140,7 +142,7 @@ const handleRegister = () => {
             Sign In
           </button>
         </div>
-        <img src="../Images/Login/reading-blue.svg" class="image" />
+        <img src="../../../public/images/undraw_intense-feeling_4i8u.svg" class="image" />
       </div>
     </div>
   </div>
