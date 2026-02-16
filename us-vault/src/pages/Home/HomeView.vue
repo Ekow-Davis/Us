@@ -8,9 +8,9 @@
           <a href="#" class="text-gray-700 hover:text-purple-700 transition-colors font-medium">Home</a>
           <a href="#" class="text-gray-700 hover:text-purple-700 transition-colors font-medium">Contact</a>
           <a href="#" class="text-gray-700 hover:text-purple-700 transition-colors font-medium">About</a>
-          <a href="#" class="text-gray-700 hover:text-purple-700 transition-colors font-medium">Reviews</a>
-          <a href="#" class="text-purple-700 font-semibold">Log In</a>
-          <a href="#" class="bg-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-800 transition">Sign Up</a>
+          
+          <router-link to="/login" class="bg-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-800 transition">Log In</router-link>
+          <router-link to="/login" class="bg-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-800 transition">Register</router-link>
         </div>
       </nav>
     </header>
@@ -31,15 +31,18 @@
             It is a form of courtship, consisting of social activities done by
             the couple, either alone or with others.
           </p>
-          <button
-            class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg transition shadow-md hover:shadow-lg"
-          >
-            Find Now
-          </button>
+          <router-link to="/login">
+            <button
+              class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg transition shadow-md hover:shadow-lg"
+            >
+              Find Now
+            </button>        
+          </router-link>
+
         </div>
 
         <!-- RIGHT: CURVED IMAGE SHAPE -->
-<div class="relative h-[700px] lg:h-[800px] flex items-center justify-end -ml-40 -mr-40 w-[150%]">
+<div class="relative h-175 lg:h-200 flex items-center justify-end -ml-40 -mr-40 w-[150%]">  
 
   <svg
     viewBox="0 0 1200 900"
