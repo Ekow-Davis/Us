@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, DateTime, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from app.config.database import Base
@@ -26,6 +26,6 @@ class SeedMedia(Base):
     file_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
     uploaded_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
     )

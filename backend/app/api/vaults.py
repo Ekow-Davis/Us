@@ -21,17 +21,34 @@ def create_vault(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check if user already in active vault
-    existing_membership = db.query(VaultMembership).filter(
+    # Check if user is already actively in a vault
+    active_membership = db.query(VaultMembership).filter(
         VaultMembership.user_id == current_user.id,
         VaultMembership.left_at.is_(None)
     ).first()
 
-    if existing_membership:
+    if active_membership:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User already belongs to a vault"
+            status_code=400,
+            detail="User already in a vault"
         )
+
+    # Check if user had previous membership in this vault
+    previous_membership = db.query(VaultMembership).filter(
+        VaultMembership.user_id == current_user.id,
+        VaultMembership.vault_id == vault.id
+    ).first()
+
+    if previous_membership:
+        # Reactivate instead of inserting new row
+        previous_membership.left_at = None
+    else:
+        membership = VaultMembership(
+            vault_id=vault.id,
+            user_id=current_user.id
+        )
+        db.add(membership)
+
 
     while True:
       invite_code = secrets.token_hex(4)
@@ -228,11 +245,13 @@ def get_vault_details(
         Seed.vault_id == vault.id
     ).count()
 
-    total_images = db.query(MemoryMedia).filter(
+    total_images = db.query(MemoryMedia).join(Memory).filter(
+        Memory.vault_id == vault.id,
         MemoryMedia.file_type.like("image%")
     ).count()
 
-    total_videos = db.query(MemoryMedia).filter(
+    total_videos = db.query(MemoryMedia).join(Memory).filter(
+        Memory.vault_id == vault.id,
         MemoryMedia.file_type.like("video%")
     ).count()
 

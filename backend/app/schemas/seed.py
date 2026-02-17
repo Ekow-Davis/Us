@@ -17,7 +17,8 @@ class SeedResponse(BaseModel):
     content: str
     bloom_at: datetime
     created_at: datetime
-    is_archived: bool
+    edited_at: datetime | None
+    status: str
 
     class Config:
         from_attributes = True

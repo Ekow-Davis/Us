@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.config.database import get_db
 from app.api.deps import get_current_user
@@ -48,7 +48,7 @@ def get_active_seeds(
     seeds = db.query(Seed).filter(
         Seed.vault_id == vault_id,
         Seed.status == "scheduled",
-        Seed.bloom_at <= datetime.utcnow()
+        Seed.bloom_at <= datetime.now(timezone.utc)
     ).order_by(Seed.bloom_at.asc()).all()
 
     result = []
@@ -74,7 +74,7 @@ def get_active_seeds(
         # Only creator sees media during 24h edit window
         if (
             seed.created_by == current_user.id and
-            datetime.utcnow() <= seed.created_at + timedelta(hours=24)
+            datetime.now(timezone.utc) <= seed.created_at + timedelta(hours=24)
         ):
             media_list = [
                 {
@@ -133,7 +133,7 @@ def get_seed_details(
             for m in seed.media
         ]
     else:
-        if datetime.utcnow() >= seed.bloom_at:
+        if datetime.now(timezone.utc) >= seed.bloom_at:
             media_list = [
                 {
                     "id": m.id,
@@ -220,7 +220,7 @@ def create_seed(
     if not membership:
         raise HTTPException(status_code=400, detail="Not in vault")
 
-    if seed_data.bloom_at <= datetime.utcnow():
+    if seed_data.bloom_at <= datetime.now(timezone.utc):
         raise HTTPException(
             status_code=400,
             detail="Bloom date must be in the future"
@@ -258,7 +258,7 @@ def bloom_seed(
     if not seed:
         raise HTTPException(status_code=404, detail="Seed not found")
 
-    if datetime.utcnow() < seed.bloom_at:
+    if datetime.now(timezone.utc) < seed.bloom_at:
         raise HTTPException(status_code=400, detail="Seed not ready")
 
     # Record view if not already viewed
@@ -339,7 +339,7 @@ async def upload_seed_media(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     # Edit window check (24h)
-    if datetime.utcnow() > seed.created_at + timedelta(hours=24):
+    if datetime.now(timezone.utc) > seed.created_at + timedelta(hours=24):
         raise HTTPException(status_code=403, detail="Edit window expired")
 
     if file.content_type not in ALLOWED_TYPES:
@@ -399,7 +399,7 @@ def delete_seed_media(
     if seed.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    if datetime.utcnow() > seed.created_at + timedelta(hours=24):
+    if datetime.now(timezone.utc) > seed.created_at + timedelta(hours=24):
         raise HTTPException(status_code=403, detail="Delete window expired")
 
     file_path = media.file_url.lstrip("/")
@@ -436,16 +436,16 @@ def update_seed(
     if seed.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Only creator can edit")
 
-    if datetime.utcnow() > seed.created_at + timedelta(hours=24):
+    if datetime.now(timezone.utc) > seed.created_at + timedelta(hours=24):
         raise HTTPException(status_code=403, detail="Edit window expired")
 
-    if datetime.utcnow() >= seed.bloom_at:
+    if datetime.now(timezone.utc) >= seed.bloom_at:
         raise HTTPException(status_code=403, detail="Cannot edit after bloom")
 
     seed.title = seed_data.title
     seed.content = seed_data.content
     seed.bloom_at = seed_data.bloom_at
-    seed.edited_at = datetime.utcnow()
+    seed.edited_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(seed)
@@ -476,7 +476,7 @@ def cancel_seed(
     if seed.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Only creator can cancel")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     within_creation_window = now <= seed.created_at + timedelta(hours=24)
     before_bloom_cutoff = now <= seed.bloom_at - timedelta(hours=24)
