@@ -8,7 +8,7 @@
         @click="toggleSidebar" 
       />
       <span class="ml-4 text-lg font-bold">Us Vault</span>
-      <div class="flex-grow"></div>
+      <div class="grow"></div>
       <div class="flex items-center space-x-2">
         <div class="text-sm">{{ user.name }}</div>
       </div>
@@ -23,10 +23,6 @@
           <router-link to="/Account" class="flex items-center p-3 hover:bg-gray-100 transition-colors" @click="closeProfileMenu">
             <User :size="16" class="mr-2" />
             <span>Account</span>
-          </router-link>
-          <router-link to="/Billing" class="flex items-center p-3 hover:bg-gray-100 transition-colors" @click="closeProfileMenu">
-            <CreditCard :size="16" class="mr-2" />
-            <span>Billing</span>
           </router-link>
           <router-link to="/Notifications" class="flex items-center p-3 hover:bg-gray-100 transition-colors" @click="closeProfileMenu">
             <Bell :size="16" class="mr-2" />
@@ -45,11 +41,11 @@
         class="flex items-center cursor-pointer hover:bg-purple-700 group rounded text-white p-2 ml-4 transition-colors"
         @click="toggleProfileMenu"
       >
-        <div class="flex items-center space-x-2 flex-grow">
+        <div class="flex items-center space-x-2 grow">
           <div class="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center overflow-hidden">
             <User :size="16" class="text-white" />
           </div>
-          <div v-if="isSidebarOpen" class="flex-grow">
+          <div v-if="isSidebarOpen" class="grow">
             <div class="text-sm font-medium text-purple-700 group-hover:text-white">
               {{ user.username }}
             </div>
@@ -67,18 +63,18 @@
       <div
         ref="sidebarRef"
         :class="[
-          'sidebar fixed md:relative top-0 md:top-auto left-0 min-h-full md:h-[calc(100vh-64px)] bg-white transition-all z-30 overflow-y-auto flex-col',
+          'sidebar p-2 fixed md:relative top-0 md:top-auto left-0 min-h-full md:h-[calc(100vh-64px)] bg-white transition-all z-30 overflow-y-auto flex-col',
           isMobile 
             ? (isSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full') 
             : isSidebarOpen ? 'w-60' : 'w-14'
         ]"
       >
-        <div class="flex-grow overflow-y-auto">
+        <div class="grow overflow-y-auto">
           <!-- Dashboard -->
           <router-link
             to="/Dashboard"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Dashboard') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -92,7 +88,7 @@
           <router-link
             to="/Seeds/Add"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Seeds/Add') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -106,7 +102,7 @@
           <router-link
             to="/Seeds"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Seeds') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -120,7 +116,7 @@
           <router-link
             to="/Memories/Add"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Memories/Add') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -134,7 +130,7 @@
           <router-link
             to="/Memories"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Memories') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -148,7 +144,7 @@
           <router-link
             to="/Vault/Details"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Vault/Details') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -162,7 +158,7 @@
           <router-link
             to="/Signal"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Signal') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -176,7 +172,7 @@
           <router-link
             to="/Settings"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Settings') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -190,7 +186,7 @@
           <router-link
             to="/Help"
             :class="[
-              'flex items-center p-3 rounded cursor-pointer transition-all',
+              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
               isActive('/Help') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
