@@ -4,6 +4,7 @@ from app.api.vaults import router as vault_router
 from app.api.memories import router as memory_router
 from app.api.media import router as media_router
 from app.api.seed import router as seed_router
+from app.api.signals import router as thinking_router
 
 from fastapi.staticfiles import StaticFiles
 
@@ -21,3 +22,4 @@ app.include_router(vault_router)
 app.include_router(memory_router)
 app.include_router(media_router)
 app.include_router(seed_router)
+app.include_router(thinking_router)

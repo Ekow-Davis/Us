@@ -5,3 +5,4 @@ from .memory_media import MemoryMedia
 from .vault_membership import VaultMembership
 from .seed import Seed
 from .seed_view import SeedView
+from .thinking_signal import ThinkingSignal
