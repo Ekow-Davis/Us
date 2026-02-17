@@ -10,6 +10,9 @@ import RegistrationTransferView from '../pages/General/RegistrationTransferPage.
 // Dashboard
 import DashboardView from '../pages/General/DashboardPage.vue'
 
+// Seed
+import AddSeedPage from '../pages/Seed/AddSeedPage.vue'
+
 
 // Seed
 
@@ -33,6 +36,11 @@ const routes = [
     path: '/registration-transfer',
     name: 'registration-transfer',
     component: RegistrationTransferView,
+  },
+  {
+    path: '/add-seed',
+    name: 'add-seed',
+    component: AddSeedPage,
   },
 ]
 

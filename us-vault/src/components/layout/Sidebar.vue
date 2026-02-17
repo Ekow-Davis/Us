@@ -86,10 +86,10 @@
 
           <!-- Add Seed -->
           <router-link
-            to="/Seeds/Add"
+            to="/add-seed"
             :class="[
               'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
-              isActive('/Seeds/Add') 
+              isActive('/add-seed') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
             ]"
@@ -206,7 +206,7 @@
       />
 
       <!-- Main content -->
-      <div class="flex-1 overflow-auto bg-gray-100 rounded-3xl p-2">
+      <div class="flex-1 overflow-auto bg-gray-100 rounded-3xl">
         <slot></slot>
       </div>
     </div>

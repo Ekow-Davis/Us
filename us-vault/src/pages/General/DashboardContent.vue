@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Heart, Sparkles, Calendar, Clock } from 'lucide-vue-next';
+import { Heart, } from 'lucide-vue-next';
+import { Sparkles } from 'lucide-vue-next';
+import { Calendar } from 'lucide-vue-next';
+import { Clock } from 'lucide-vue-next';
 import FlowerFieldOverlay from './FlowerFieldOverlay.vue';
 
 // State
@@ -274,7 +277,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen p-2">
     <!-- Flower Field Overlay (only shows if signals exist) -->
     <FlowerFieldOverlay v-if="showFlowers" :signal-count="signalCount" />
 
