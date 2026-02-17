@@ -13,6 +13,9 @@ import DashboardView from '../pages/General/DashboardPage.vue'
 // Seed
 import AddSeedPage from '../pages/Seed/AddSeedPage.vue'
 
+// Memory
+import AddMemoryPage from '../pages/Memories/AddMemoryPage.vue'
+import MemoryPage from '../pages/Memories/MemoryPage.vue'
 
 // Vault
 import VaultPage from '../pages/Vault/VaultPage.vue'
@@ -47,6 +50,16 @@ const routes = [
     path: '/vault',
     name: 'vault',
     component: VaultPage,
+  },
+  {
+    path: '/memories',
+    name: 'memories',
+    component: MemoryPage,
+  },
+  {
+    path: '/add-memory',
+    name: 'add-memory',
+    component: AddMemoryPage,
   },
 ]
 

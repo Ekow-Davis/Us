@@ -114,10 +114,10 @@
 
           <!-- Add Memory -->
           <router-link
-            to="/Memories/Add"
+            to="/add-memory"
             :class="[
               'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
-              isActive('/Memories/Add') 
+              isActive('/add-memory') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
             ]"
@@ -128,10 +128,10 @@
 
           <!-- Memories -->
           <router-link
-            to="/Memories"
+            to="/memories"
             :class="[
               'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
-              isActive('/Memories') 
+              isActive('/memories') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
             ]"
@@ -142,10 +142,10 @@
 
           <!-- Vault Details -->
           <router-link
-            to="/Vault/Details"
+            to="/vault"
             :class="[
               'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
-              isActive('/Vault/Details') 
+              isActive('/vault') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
             ]"
