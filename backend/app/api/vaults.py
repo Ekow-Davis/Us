@@ -8,6 +8,12 @@ from app.models.user import User
 from app.models.vault import Vault
 from app.models.vault_membership import VaultMembership
 
+from sqlalchemy import func
+from app.models.memory import Memory
+from app.models.seed import Seed
+from app.models.memory_media import MemoryMedia
+from app.models.thinking_signal import ThinkingSignal
+
 router = APIRouter(prefix="/vaults", tags=["Vaults"])
 
 @router.post("/create")
@@ -38,7 +44,8 @@ def create_vault(
 
     vault = Vault(
         invite_code=invite_code,
-        status="pending"
+        status="pending",
+        created_by=current_user.id
     )
 
     db.add(vault)
@@ -113,9 +120,6 @@ def join_vault(
     if active_members == 1:
         vault.status = "active"
 
-
-
-
     db.commit()
 
     return {"message": "Joined vault successfully"}
@@ -182,3 +186,85 @@ def leave_vault(
     db.commit()
 
     return {"message": "Left vault successfully"}
+
+@router.get("/details")
+def get_vault_details(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    membership = db.query(VaultMembership).filter(
+        VaultMembership.user_id == current_user.id,
+        VaultMembership.left_at.is_(None)
+    ).first()
+
+    if not membership:
+        raise HTTPException(status_code=400, detail="Not in vault")
+
+    vault = db.query(Vault).filter(
+        Vault.id == membership.vault_id
+    ).first()
+
+    # Get partner
+    partner_membership = db.query(VaultMembership).filter(
+        VaultMembership.vault_id == vault.id,
+        VaultMembership.user_id != current_user.id,
+        VaultMembership.left_at.is_(None)
+    ).first()
+
+    partner_name = None
+    if partner_membership:
+        partner = db.query(User).filter(
+            User.id == partner_membership.user_id
+        ).first()
+        partner_name = partner.display_name
+
+    # Stats
+    total_memories = db.query(Memory).filter(
+        Memory.vault_id == vault.id,
+        Memory.is_deleted == False
+    ).count()
+
+    total_seeds = db.query(Seed).filter(
+        Seed.vault_id == vault.id
+    ).count()
+
+    total_images = db.query(MemoryMedia).filter(
+        MemoryMedia.file_type.like("image%")
+    ).count()
+
+    total_videos = db.query(MemoryMedia).filter(
+        MemoryMedia.file_type.like("video%")
+    ).count()
+
+    total_signals = db.query(ThinkingSignal).filter(
+        ThinkingSignal.vault_id == vault.id
+    ).count()
+
+    first_memory = db.query(func.min(Memory.created_at)).filter(
+        Memory.vault_id == vault.id
+    ).scalar()
+
+    last_activity = db.query(func.max(Memory.created_at)).filter(
+        Memory.vault_id == vault.id
+    ).scalar()
+
+    creator = db.query(User).filter(
+        User.id == vault.created_by
+    ).first()
+
+    return {
+        "vault_id": vault.id,
+        "status": vault.status,
+        "created_at": vault.created_at,
+        "created_by": creator.display_name if creator else None,
+        "partner_name": partner_name,
+        "stats": {
+            "total_memories": total_memories,
+            "total_seeds": total_seeds,
+            "total_images": total_images,
+            "total_videos": total_videos,
+            "total_signals": total_signals,
+            "first_memory_date": first_memory,
+            "last_activity_date": last_activity
+        }
+    }

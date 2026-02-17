@@ -38,7 +38,7 @@
 
     <div class="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center">
       <!-- Image Carousel - Hidden on mobile -->
-      <div class="hidden lg:block flex-1 relative h-[600px] overflow-hidden">
+      <div class="hidden lg:block flex-1 relative h-150 overflow-hidden">
         <TransitionGroup name="carousel">
           <div
             v-for="(image, index) in carouselImages"

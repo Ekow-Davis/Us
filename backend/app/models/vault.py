@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, DateTime
+from sqlalchemy import ForeignKey, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from app.config.database import Base
@@ -27,4 +27,9 @@ class Vault(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow
+    )
+
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True
     )
