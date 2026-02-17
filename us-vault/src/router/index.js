@@ -25,6 +25,9 @@ import VaultPage from '../pages/Vault/VaultPage.vue'
 // Signal
 import SignalPage from '../pages/Signal/SignalPage.vue'
 
+// Settings
+import SettingsPage from '../pages/Settings/SettingsPage.vue'
+
 const routes = [
   {
     path: '/',
@@ -77,6 +80,11 @@ const routes = [
     path: '/signal',
     name: 'signal',
     component: SignalPage,
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: SettingsPage,
   },
   { path: '/:pathMatch(.*)*',     redirect: '/' },
 ]
