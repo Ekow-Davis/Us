@@ -2,6 +2,9 @@
 import { ref, onMounted } from "vue"
 import FlowerFieldOverlay from "./FlowerFieldOverlay.vue"
 
+import Sidebar from "../../components/layout/Sidebar.vue"
+import DashboardContent from "./DashboardContent.vue"
+
 const showFlowers = ref(false)
 const signalCount = ref(0)
 
@@ -21,32 +24,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="dashboard">
-    <h1>This is the dashboard</h1>
-    <p>Welcome to your dashboard. Your content goes here.</p>
+  <Sidebar>
+    <div class="dashboard">
+    <DashboardContent />
 
     <FlowerFieldOverlay 
       v-if="showFlowers" 
       :signal-count="signalCount" 
     />
   </div>
+  </Sidebar>
+  
 </template>
 
 <style scoped>
-.dashboard {
-  padding: 3rem;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
 
-.dashboard h1 {
-  color: #333;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.dashboard p {
-  color: #666;
-  font-size: 1.1rem;
-}
 </style>
