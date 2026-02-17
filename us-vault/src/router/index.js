@@ -22,6 +22,9 @@ import MemoryPage from '../pages/Memories/MemoryPage.vue'
 // Vault
 import VaultPage from '../pages/Vault/VaultPage.vue'
 
+// Signal
+import SignalPage from '../pages/Signal/SignalPage.vue'
+
 const routes = [
   {
     path: '/',
@@ -70,7 +73,12 @@ const routes = [
     component: AddMemoryPage,
   },
   { path: '/memories/:id', name: 'memorydetail', component: MemoryDetailPage },
-   { path: '/:pathMatch(.*)*',     redirect: '/' },
+  {
+    path: '/signal',
+    name: 'signal',
+    component: SignalPage,
+  },
+  { path: '/:pathMatch(.*)*',     redirect: '/' },
 ]
 
 const router = createRouter({
