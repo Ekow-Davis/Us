@@ -28,6 +28,9 @@ import SignalPage from '../pages/Signal/SignalPage.vue'
 // Settings
 import SettingsPage from '../pages/Settings/SettingsPage.vue'
 
+// Help
+import HelpPage from '../pages/Help/HelpPage.vue'
+
 const routes = [
   {
     path: '/',
@@ -85,6 +88,11 @@ const routes = [
     path: '/settings',
     name: 'settings',
     component: SettingsPage,
+  },
+  {
+    path: '/help',
+    name: 'help',
+    component: HelpPage,
   },
   { path: '/:pathMatch(.*)*',     redirect: '/' },
 ]
