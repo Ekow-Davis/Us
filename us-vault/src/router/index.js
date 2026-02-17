@@ -14,7 +14,8 @@ import DashboardView from '../pages/General/DashboardPage.vue'
 import AddSeedPage from '../pages/Seed/AddSeedPage.vue'
 
 
-// Seed
+// Vault
+import VaultPage from '../pages/Vault/VaultPage.vue'
 
 const routes = [
   {
@@ -41,6 +42,11 @@ const routes = [
     path: '/add-seed',
     name: 'add-seed',
     component: AddSeedPage,
+  },
+  {
+    path: '/vault',
+    name: 'vault',
+    component: VaultPage,
   },
 ]
 

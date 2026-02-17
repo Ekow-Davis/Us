@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
+import { Flower, Flower2 } from 'lucide-vue-next'
 
 // ─── Form State ────────────────────────────────────────────────────────────────
 const title = ref('')
@@ -321,7 +322,7 @@ const handleSubmit = async () => {
 
           <!-- Title -->
           <div class="form-group">
-            <label class="seed-label">Seed Title <span class="text-fuchsia-500">*</span></label>
+            <label class="seed-label block text-sm font-semibold text-gray-700 mb-2">Seed Title <span class="text-fuchsia-500">*</span></label>
             <div class="relative">
               <input
                 v-model="title"
@@ -337,7 +338,7 @@ const handleSubmit = async () => {
 
           <!-- Content -->
           <div class="form-group">
-            <label class="seed-label">Message <span class="text-gray-400 font-normal text-xs">(optional)</span></label>
+            <label class="seed-label block text-sm font-semibold text-gray-700 mb-2">Message <span class="text-gray-400 font-normal text-xs">(optional)</span></label>
             <textarea
               v-model="content"
               placeholder="Write what you want them to find when it blooms..."
@@ -348,7 +349,7 @@ const handleSubmit = async () => {
 
           <!-- Bloom At - Custom Date Picker -->
           <div class="form-group">
-            <label class="seed-label">Bloom Date & Time <span class="text-fuchsia-500">*</span></label>
+            <label class="seed-label block text-sm font-semibold text-gray-700 mb-2">Bloom Date & Time <span class="text-fuchsia-500">*</span></label>
             <p class="text-xs text-gray-400 mb-2">Choose a future date — this seed cannot bloom today.</p>
 
             <button
@@ -372,11 +373,11 @@ const handleSubmit = async () => {
                 <div v-if="pickerStep === 'date'" class="p-5">
                   <!-- Month Nav -->
                   <div class="flex items-center justify-between mb-5">
-                    <button type="button" @click="prevMonth" class="picker-nav-btn">
+                    <button type="button" @click="prevMonth" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-purple-50 hover:text-purple-700 transition-all">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     <span class="font-semibold text-gray-800 text-sm">{{ monthNames[selectedMonth] }} {{ selectedYear }}</span>
-                    <button type="button" @click="nextMonth" class="picker-nav-btn">
+                    <button type="button" @click="nextMonth" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-purple-50 hover:text-purple-700 transition-all">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                   </div>
@@ -420,7 +421,7 @@ const handleSubmit = async () => {
                 <!-- Step: Time -->
                 <div v-else class="p-5">
                   <div class="flex items-center gap-3 mb-5">
-                    <button type="button" @click="pickerStep = 'date'" class="picker-nav-btn">
+                    <button type="button" @click="pickerStep = 'date'" class=" w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-purple-50 hover:text-purple-700 transition-all">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     <span class="font-semibold text-gray-800 text-sm">
@@ -440,7 +441,7 @@ const handleSubmit = async () => {
                     <!-- Minute -->
                     <div class="flex flex-col items-center gap-2">
                       <label class="text-xs text-gray-500 font-medium uppercase tracking-wide">Minute</label>
-                      <select v-model="selectedMinute" class="time-select">
+                      <select v-model="selectedMinute" class="time-select border border-gray-200 rounded-xl px-4 py-2 text-lg font-bold text-purple-800 text-center outline-none cursor-pointer">
                         <option v-for="m in minutesArr" :key="m" :value="m">{{ String(m).padStart(2,'0') }}</option>
                       </select>
                     </div>
@@ -460,7 +461,7 @@ const handleSubmit = async () => {
 
           <!-- Media Upload -->
           <div class="form-group">
-            <label class="seed-label">Attach a Memory <span class="text-gray-400 font-normal text-xs">(optional)</span></label>
+            <label class="seed-label block text-sm font-semibold text-gray-700 mb-2">Attach a Memory <span class="text-gray-400 font-normal text-xs">(optional)</span></label>
             
             <!-- Limits notice -->
             <div class="flex gap-4 mb-3">
@@ -572,7 +573,7 @@ const handleSubmit = async () => {
               :style="isSubmitting ? 'opacity: 0.7; cursor: not-allowed;' : 'opacity: 1; cursor: pointer;'"
             >
               <span v-if="!isSubmitting" class="flex items-center justify-center gap-2">
-                <svg width="20" height="20" viewBox="0 0 60 60"><ellipse cx="30" cy="34" rx="14" ry="20" fill="white" opacity="0.9"/><circle cx="30" cy="22" r="8" fill="white" opacity="0.6"/></svg>
+                <Flower class="w-5 h-5 text-white animate-pulse" />
                 Plant This Seed
               </span>
               <span v-else class="flex items-center justify-center gap-2">
@@ -581,7 +582,7 @@ const handleSubmit = async () => {
               </span>
             </button>
             <p class="text-center text-xs text-gray-400 mt-3">
-              This memory will remain hidden until it blooms. ✦
+              This memory will remain hidden until it blooms.
             </p>
           </div>
         </form>
@@ -599,10 +600,9 @@ const handleSubmit = async () => {
   background: linear-gradient(160deg, #faf5ff 0%, #ffffff 40%, #fdf4ff 100%);
 }
 
-/* .seed-label {
-  @apply block text-sm font-semibold text-gray-700 mb-2;
+.seed-label {
   font-family: 'Red Hat Text', sans-serif;
-} */
+}
 
 .seed-input {
   font-family: 'Red Hat Text', sans-serif;
@@ -613,13 +613,9 @@ const handleSubmit = async () => {
 .seed-input::placeholder {
   @apply text-gray-400;
 }
-
-.picker-nav-btn {
-  @apply w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-purple-50 hover:text-purple-700 transition-all;
-} */
+ */
 
 .time-select {
-  /* @apply border border-gray-200 rounded-xl px-4 py-2 text-lg font-bold text-purple-800 text-center outline-none cursor-pointer; */
   font-family: 'Red Hat Text', sans-serif;
   background: #faf5ff;
   appearance: none;

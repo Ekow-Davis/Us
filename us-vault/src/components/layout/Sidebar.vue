@@ -74,7 +74,7 @@
           <router-link
             to="/Dashboard"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Dashboard') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -88,7 +88,7 @@
           <router-link
             to="/add-seed"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/add-seed') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -102,7 +102,7 @@
           <router-link
             to="/Seeds"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Seeds') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -116,7 +116,7 @@
           <router-link
             to="/Memories/Add"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Memories/Add') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -130,7 +130,7 @@
           <router-link
             to="/Memories"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Memories') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -144,7 +144,7 @@
           <router-link
             to="/Vault/Details"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Vault/Details') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -158,7 +158,7 @@
           <router-link
             to="/Signal"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Signal') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -172,7 +172,7 @@
           <router-link
             to="/Settings"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Settings') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
@@ -186,7 +186,7 @@
           <router-link
             to="/Help"
             :class="[
-              'flex items-center p-3 my-1 rounded cursor-pointer transition-all',
+              'flex items-center p-2 my-1 rounded cursor-pointer transition-all',
               isActive('/Help') 
                 ? 'bg-purple-700 text-white' 
                 : 'text-purple-700 hover:bg-purple-700 hover:text-white'
