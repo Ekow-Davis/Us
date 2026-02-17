@@ -12,9 +12,11 @@ import DashboardView from '../pages/General/DashboardPage.vue'
 
 // Seed
 import AddSeedPage from '../pages/Seed/AddSeedPage.vue'
+import SeedPage from '../pages/Seed/SeedPage.vue'
 
 // Memory
 import AddMemoryPage from '../pages/Memories/AddMemoryPage.vue'
+import MemoryDetailPage from '../pages/Memories/MemoryDetailPage.vue'
 import MemoryPage from '../pages/Memories/MemoryPage.vue'
 
 // Vault
@@ -41,10 +43,16 @@ const routes = [
     name: 'registration-transfer',
     component: RegistrationTransferView,
   },
+
   {
     path: '/add-seed',
     name: 'add-seed',
     component: AddSeedPage,
+  },
+  {
+    path: '/seeds',
+    name: 'seeds',
+    component: SeedPage,
   },
   {
     path: '/vault',
@@ -61,6 +69,8 @@ const routes = [
     name: 'add-memory',
     component: AddMemoryPage,
   },
+  { path: '/memories/:id', name: 'memorydetail', component: MemoryDetailPage },
+   { path: '/:pathMatch(.*)*',     redirect: '/' },
 ]
 
 const router = createRouter({
