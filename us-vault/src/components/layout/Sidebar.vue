@@ -9,7 +9,7 @@
 
       <!-- Hamburger -->
       <button @click="toggleSidebar"
-              class="w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-purple-50 text-purple-700 flex-shrink-0">
+              class="w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-purple-50 text-purple-700 shrink-0">
         <Menu :size="20" />
       </button>
 
@@ -33,7 +33,7 @@
             <p class="text-xs font-semibold text-gray-800 leading-none" style="font-family:'DM Sans',sans-serif;">{{ user.username }}</p>
             <p class="text-xs text-gray-400 mt-0.5">{{ user.email }}</p>
           </div>
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style="background: linear-gradient(135deg,#ec4899,#a855f7);">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style="background: linear-gradient(135deg,#ec4899,#a855f7);">
             {{ user.username?.charAt(0)?.toUpperCase() || 'U' }}
           </div>
           <ChevronsUpDown :size="14" class="text-gray-400 group-hover:text-purple-600 transition-colors" />
@@ -88,7 +88,7 @@
            style="background: linear-gradient(180deg, #1a0d2e 0%, #0f0620 60%, #130826 100%);">
 
         <!-- Decorative top accent line -->
-        <div class="h-px w-full flex-shrink-0" style="background: linear-gradient(90deg, transparent, #7c3aed, #c084fc, #ec4899, transparent);"></div>
+        <div class="h-px w-full shrink-0" style="background: linear-gradient(90deg, transparent, #7c3aed, #c084fc, #ec4899, transparent);"></div>
 
         <!-- Ambient glow top -->
         <div class="absolute top-0 left-0 right-0 h-48 pointer-events-none"
@@ -223,7 +223,7 @@
         </nav>
 
         <!-- ── Sidebar Footer ────────────────────────────────────── -->
-        <div class="relative z-10 flex-shrink-0 p-3 border-t" style="border-color: rgba(124,58,237,0.2);">
+        <div class="relative z-10 shrink-0 p-3 border-t" style="border-color: rgba(124,58,237,0.2);">
           <!-- Decorative flower in footer -->
           <!-- <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 py-2">
             <div class="flex-shrink-0">
@@ -251,7 +251,7 @@
         </div>
 
         <!-- Bottom accent line -->
-        <div class="h-px w-full flex-shrink-0" style="background: linear-gradient(90deg, transparent, #7c3aed, transparent);"></div>
+        <div class="h-px w-full shrink-0" style="background: linear-gradient(90deg, transparent, #7c3aed, transparent);"></div>
       </div>
 
       <!-- Mobile overlay -->
