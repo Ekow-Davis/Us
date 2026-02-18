@@ -157,7 +157,6 @@ def get_seed_details(
         "has_viewed": current_user.id in viewed_user_ids
     }
 
-
 # Get all seeds for the user's vault (including archived)
 @router.get("/")
 def get_all_seeds(
@@ -176,6 +175,11 @@ def get_all_seeds(
         Seed.vault_id == membership.vault_id
     ).order_by(Seed.created_at.desc()).all()
 
+    is_ready = (
+        seed.status == "scheduled" and
+        datetime.now(timezone.utc) >= seed.bloom_at
+    )
+
     result = []
 
     for seed in seeds:
@@ -189,6 +193,8 @@ def get_all_seeds(
             "bloom_at": seed.bloom_at,
             "created_at": seed.created_at,
             "status": seed.status,
+            "is_ready": is_ready,
+            "memory_id": seed.memory_id,
             "media": [
                   {
                       "id": m.id,
