@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime
+from math import ceil
 
 from app.config.database import get_db
 from app.api.deps import get_current_user
@@ -49,19 +50,62 @@ def create_memory(
     return memory
 
 
-@router.get("/", response_model=list[MemoryResponse])
+@router.get("/")
 def list_memories(
+    page: int = 1,
+    page_size: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     vault_id = get_user_vault(db, current_user.id)
 
-    memories = db.query(Memory).filter(
+    query = db.query(Memory).filter(
         Memory.vault_id == vault_id,
         Memory.is_deleted == False
-    ).order_by(Memory.created_at.desc()).all()
+    ).order_by(Memory.created_at.desc())
 
-    return memories
+    total = query.count()
+
+    memories = query.offset((page - 1) * page_size)\
+                    .limit(page_size)\
+                    .all()
+
+    return {
+        "items": memories,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
+
+@router.get("/me")
+def get_my_memories(
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vault_id = get_user_vault(db, current_user.id)
+
+    query = db.query(Memory).filter(
+        Memory.vault_id == vault_id,
+        Memory.created_by == current_user.id,
+        Memory.is_deleted == False
+    ).order_by(Memory.created_at.desc())
+
+    total = query.count()
+
+    memories = query.offset((page - 1) * page_size)\
+                    .limit(page_size)\
+                    .all()
+
+    return {
+        "items": memories,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
 
 
 @router.get("/{memory_id}", response_model=MemoryResponse)

@@ -3,7 +3,9 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
+from math import ceil
 
 from app.config.database import get_db
 from app.api.deps import get_current_user
@@ -99,7 +101,7 @@ def get_active_seeds(
 
     return result
 
-# Get a specific seed by ID (also allowing for archived)
+# Get a specific seed by ID
 @router.get("/{seed_id}")
 def get_seed_details(
     seed_id: str,
@@ -160,32 +162,36 @@ def get_seed_details(
 # Get all seeds for the user's vault (including archived)
 @router.get("/")
 def get_all_seeds(
+    page: int = 1,
+    page_size: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    membership = db.query(VaultMembership).filter(
-        VaultMembership.user_id == current_user.id,
-        VaultMembership.left_at.is_(None)
-    ).first()
+    vault_id = get_user_vault(db, current_user.id)
 
-    if not membership:
-        raise HTTPException(status_code=400, detail="Not in vault")
+    query = db.query(Seed).filter(
+        Seed.vault_id == vault_id
+    ).order_by(Seed.created_at.desc())
 
-    seeds = db.query(Seed).filter(
-        Seed.vault_id == membership.vault_id
-    ).order_by(Seed.created_at.desc()).all()
+    total = query.count()
 
-    is_ready = (
-        seed.status == "scheduled" and
-        datetime.now(timezone.utc) >= seed.bloom_at
-    )
+    seeds = query.offset((page - 1) * page_size)\
+                 .limit(page_size)\
+                 .all()
 
     result = []
+
+    now = datetime.now(timezone.utc)
 
     for seed in seeds:
         views = db.query(SeedView).filter(
             SeedView.seed_id == seed.id
-        ).all()
+        ).count()
+
+        is_ready = (
+            seed.status == "scheduled" and
+            now >= seed.bloom_at
+        )
 
         result.append({
             "id": seed.id,
@@ -196,18 +202,114 @@ def get_all_seeds(
             "is_ready": is_ready,
             "memory_id": seed.memory_id,
             "media": [
-                  {
-                      "id": m.id,
-                      "file_url": m.file_url,
-                      "file_type": m.file_type
-                  }
-                  for m in seed.media
-              ],
-            "view_count": len(views),
+                {
+                    "id": m.id,
+                    "file_url": m.file_url,
+                    "file_type": m.file_type
+                }
+                for m in seed.media
+            ],
+            "view_count": views,
         })
 
-    return result
+    return {
+        "items": result,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
 
+@router.get("/me")
+def get_my_seeds(
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vault_id = get_user_vault(db, current_user.id)
+
+    query = db.query(Seed).filter(
+        Seed.vault_id == vault_id,
+        Seed.created_by == current_user.id
+    ).order_by(Seed.created_at.desc())
+
+    total = query.count()
+
+    seeds = query.offset((page - 1) * page_size)\
+                 .limit(page_size)\
+                 .all()
+
+    now = datetime.now(timezone.utc)
+
+    result = []
+
+    for seed in seeds:
+        is_ready = (
+            seed.status == "scheduled" and
+            now >= seed.bloom_at
+        )
+
+        result.append({
+            "id": seed.id,
+            "title": seed.title,
+            "bloom_at": seed.bloom_at,
+            "created_at": seed.created_at,
+            "status": seed.status,
+            "is_ready": is_ready,
+            "memory_id": seed.memory_id,
+        })
+
+    return {
+        "items": result,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
+
+
+@router.get("/summary")
+def get_seed_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vault_id = get_user_vault(db, current_user.id)
+
+    now = datetime.now(timezone.utc)
+
+    # Total (exclude cancelled)
+    total = db.query(func.count(Seed.id)).filter(
+        Seed.vault_id == vault_id,
+        Seed.status != "cancelled"
+    ).scalar()
+
+    # Growing (scheduled + future)
+    growing = db.query(func.count(Seed.id)).filter(
+        Seed.vault_id == vault_id,
+        Seed.status == "scheduled",
+        Seed.bloom_at > now
+    ).scalar()
+
+    # Ready (scheduled + past bloom time)
+    ready = db.query(func.count(Seed.id)).filter(
+        Seed.vault_id == vault_id,
+        Seed.status == "scheduled",
+        Seed.bloom_at <= now
+    ).scalar()
+
+    # Bloomed (converted)
+    bloomed = db.query(func.count(Seed.id)).filter(
+        Seed.vault_id == vault_id,
+        Seed.status == "bloomed"
+    ).scalar()
+
+    return {
+        "total": total,
+        "growing": growing,
+        "ready": ready,
+        "bloomed": bloomed
+    }
 
 # POST ENDPOINTS
 

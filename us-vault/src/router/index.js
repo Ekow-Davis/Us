@@ -15,6 +15,8 @@ import DashboardView from '../pages/General/DashboardPage.vue'
 // Seed
 import AddSeedPage from '../pages/Seed/AddSeedPage.vue'
 import SeedPage from '../pages/Seed/SeedPage.vue'
+import MySeedsPage from '../pages/Seed/MySeedsPage.vue'
+import SeedDetailPage from '../pages/Seed/SeedDetailPage.vue'
 
 // Memory
 import AddMemoryPage from '../pages/Memories/AddMemoryPage.vue'
@@ -51,12 +53,14 @@ const routes = [
 
   { path: '/add-seed', name: 'add-seed', component: AddSeedPage, },
   { path: '/seeds', name: 'seeds', component: SeedPage, },
+  { path: '/my-seeds', name: 'my-seeds', component: MySeedsPage, },
+  { path: '/seeds/edit/:id', name: 'edit-seed', component: SeedDetailPage, props: true },  
 
   { path: '/vault', name: 'vault', component: VaultPage, },
 
   { path: '/memories', name: 'memories', component: MemoryPage,},
   { path: '/add-memory', name: 'add-memory', component: AddMemoryPage, },
-  { path: '/memories/:id', name: 'memorydetail', component: MemoryDetailPage },
+  { path: '/memories/:id', name: 'memory-detail', component: MemoryDetailPage },
 
   { path: '/journal', name: 'journal', component: JournalPage, },
 

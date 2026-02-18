@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from math import ceil
 
 from app.config.database import get_db
 from app.api.deps import get_current_user
@@ -106,37 +107,63 @@ def convert_journal_to_memory(
 # GET ENDPOINTS
 
 # Getting all private Journals for the user, sorted by creation date (newest to oldest)
-@router.get("/private", response_model=list[JournalResponse])
+@router.get("/private")
 def get_private_journals(
+    page: int = 1,
+    page_size: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    journals = db.query(Journal).filter(
+    query = db.query(Journal).filter(
         Journal.user_id == current_user.id,
         Journal.visibility == "private",
         Journal.is_deleted == False
-    ).order_by(Journal.created_at.desc()).all()
+    ).order_by(Journal.created_at.desc())
 
-    return journals
+    total = query.count()
+
+    journals = query.offset((page - 1) * page_size)\
+                    .limit(page_size)\
+                    .all()
+
+    return {
+        "items": journals,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
+
 
 # Getting all shared Journals in the user's vault, sorted by creation date (newest to oldest)
-@router.get("/shared", response_model=list[JournalResponse])
+@router.get("/shared")
 def get_shared_journals(
+    page: int = 1,
+    page_size: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     vault_id = get_user_vault(db, current_user.id)
 
-    if not vault_id:
-        return []
-
-    journals = db.query(Journal).filter(
+    query = db.query(Journal).filter(
         Journal.vault_id == vault_id,
         Journal.visibility == "shared",
         Journal.is_deleted == False
-    ).order_by(Journal.created_at.desc()).all()
+    ).order_by(Journal.created_at.desc())
 
-    return journals
+    total = query.count()
+
+    journals = query.offset((page - 1) * page_size)\
+                    .limit(page_size)\
+                    .all()
+
+    return {
+        "items": journals,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ceil(total / page_size)
+    }
 
 @router.get("/analytics/me")
 def get_my_journal_analytics(
