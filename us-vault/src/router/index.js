@@ -22,6 +22,9 @@ import MemoryPage from '../pages/Memories/MemoryPage.vue'
 // Vault
 import VaultPage from '../pages/Vault/VaultPage.vue'
 
+// Journal
+import JournalPage from '../pages/Journal/JournalPage.vue'
+
 // Signal
 import SignalPage from '../pages/Signal/SignalPage.vue'
 
@@ -79,6 +82,11 @@ const routes = [
     component: AddMemoryPage,
   },
   { path: '/memories/:id', name: 'memorydetail', component: MemoryDetailPage },
+  {
+    path: '/journal',
+    name: 'journal',
+    component: JournalPage,
+  },
   {
     path: '/signal',
     name: 'signal',

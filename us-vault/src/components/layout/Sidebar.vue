@@ -185,6 +185,20 @@
             <div v-if="isSidebarOpen && isActive('/Signal')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
           </router-link>
 
+          <!-- Section: Journal -->
+          <div v-if="isSidebarOpen" class="px-3 mt-5 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-widest" style="color: rgba(192,132,252,0.4); font-family:'DM Sans',sans-serif; font-size:0.65rem;">Journal</span>
+          </div>
+          <div v-else class="my-2 mx-auto w-6 h-px" style="background: rgba(124,58,237,0.3);"></div>
+
+          <router-link to="/journal" :class="navClass('/journal')">
+            <div :class="iconWrap('/journal')">
+              <Book :size="16" />
+            </div>
+            <span v-if="isSidebarOpen" class="nav-label">Journal</span>
+            <div v-if="isSidebarOpen && isActive('/journal')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
+          </router-link>
+
           <!-- Section: System -->
           <div v-if="isSidebarOpen" class="px-3 mt-5 mb-2">
             <span class="text-xs font-semibold uppercase tracking-widest" style="color: rgba(192,132,252,0.4); font-family:'DM Sans',sans-serif; font-size:0.65rem;">System</span>
@@ -211,7 +225,7 @@
         <!-- ── Sidebar Footer ────────────────────────────────────── -->
         <div class="relative z-10 flex-shrink-0 p-3 border-t" style="border-color: rgba(124,58,237,0.2);">
           <!-- Decorative flower in footer -->
-          <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 py-2">
+          <!-- <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 py-2">
             <div class="flex-shrink-0">
               <svg width="28" height="28" viewBox="0 0 100 100">
                 <g transform="translate(50,50)">
@@ -233,7 +247,7 @@
                 <path d="M24 40C24 40 6 28 6 16C6 10.477 10.477 6 16 6C19.314 6 22.251 7.616 24 10.101C25.749 7.616 28.686 6 32 6C37.523 6 42 10.477 42 16C42 28 24 40 24 40Z" fill="white" opacity="0.9"/>
               </svg>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <!-- Bottom accent line -->
@@ -259,7 +273,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Menu, Home, HelpCircle, Plus, Sprout, FilePlus, Heart,
-  Shield, Zap, Settings, ChevronsUpDown, LogOut, Bell, User
+  Shield, Zap, Settings, ChevronsUpDown, LogOut, Bell, User,
+  Book
 } from 'lucide-vue-next'
 
 const route  = useRoute()
