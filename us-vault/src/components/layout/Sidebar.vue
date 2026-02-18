@@ -50,10 +50,10 @@
               <p class="text-xs text-gray-400">{{ user.email }}</p>
             </div>
             <div class="py-1">
-              <router-link to="/Account" @click="closeProfileMenu"
+              <router-link to="/settings" @click="closeProfileMenu"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">
                 <User :size="15" class="text-gray-400" />
-                <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Account</span>
+                <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Settings</span>
               </router-link>
               <router-link to="/Notifications" @click="closeProfileMenu"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">

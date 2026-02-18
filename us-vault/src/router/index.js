@@ -3,6 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Import pages
 // Home Section Pages
 import HomeView from '../pages/Home/HomeView.vue'
+import ContactPage from '../pages/Home/ContactPage.vue'
+import AboutPage from '../pages/Home/AboutPage.vue'
 import LoginView from '../pages/Home/LoginPage.vue'
 import RegistrationTransferView from '../pages/General/RegistrationTransferPage.vue'
 
@@ -35,74 +37,36 @@ import SettingsPage from '../pages/Settings/SettingsPage.vue'
 import HelpPage from '../pages/Help/HelpPage.vue'
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView,
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: LoginView,
-  },
-  {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: DashboardView,
-  },
-  {
-    path: '/registration-transfer',
-    name: 'registration-transfer',
-    component: RegistrationTransferView,
-  },
+  // Routes that don't require authentication
+  { path: '/', name: 'home', component: HomeView, },
+  { path: '/contact', name: 'contact', component: ContactPage, },
+  { path: '/about', name: 'about', component: AboutPage, },
 
-  {
-    path: '/add-seed',
-    name: 'add-seed',
-    component: AddSeedPage,
-  },
-  {
-    path: '/seeds',
-    name: 'seeds',
-    component: SeedPage,
-  },
-  {
-    path: '/vault',
-    name: 'vault',
-    component: VaultPage,
-  },
-  {
-    path: '/memories',
-    name: 'memories',
-    component: MemoryPage,
-  },
-  {
-    path: '/add-memory',
-    name: 'add-memory',
-    component: AddMemoryPage,
-  },
+  // Authentication routes
+  { path: '/login', name: 'login', component: LoginView, },
+
+  // Protected routes (require authentication)
+  { path: '/registration-transfer', name: 'registration-transfer', component: RegistrationTransferView, },
+  { path: '/dashboard', name: 'dashboard', component: DashboardView, },
+
+  { path: '/add-seed', name: 'add-seed', component: AddSeedPage, },
+  { path: '/seeds', name: 'seeds', component: SeedPage, },
+
+  { path: '/vault', name: 'vault', component: VaultPage, },
+
+  { path: '/memories', name: 'memories', component: MemoryPage,},
+  { path: '/add-memory', name: 'add-memory', component: AddMemoryPage, },
   { path: '/memories/:id', name: 'memorydetail', component: MemoryDetailPage },
-  {
-    path: '/journal',
-    name: 'journal',
-    component: JournalPage,
-  },
-  {
-    path: '/signal',
-    name: 'signal',
-    component: SignalPage,
-  },
-  {
-    path: '/settings',
-    name: 'settings',
-    component: SettingsPage,
-  },
-  {
-    path: '/help',
-    name: 'help',
-    component: HelpPage,
-  },
-  { path: '/:pathMatch(.*)*',     redirect: '/' },
+
+  { path: '/journal', name: 'journal', component: JournalPage, },
+
+  { path: '/signal', name: 'signal', component: SignalPage, },
+
+  { path: '/settings', name: 'settings', component: SettingsPage, },
+
+  { path: '/help', name: 'help', component: HelpPage, },
+
+  { path: '/:pathMatch(.*)*',   redirect: '/' },
 ]
 
 const router = createRouter({
