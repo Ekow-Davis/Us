@@ -69,7 +69,7 @@ const handleRegister = () => {
             </span>
           </div>
 
-          <button class="btn" type="submit">
+          <button class="btn-pink" type="submit">
             Login
           </button>
         </form>

@@ -89,7 +89,7 @@ const features = [
           <button @click="router.push('/')" class="home-nav-link">Home</button>
           <button @click="router.push('/about')" class="home-nav-link">About</button>
           <button @click="router.push('/contact')" class="home-nav-link">Contact</button>
-          <button @click="router.push('/')" class="home-nav-btn" :style="{ background: `linear-gradient(135deg, ${computedBgColor()}, ${computedBgColor()})` }">
+          <button @click="router.push('/login')" class="home-nav-btn" :style="{ background: `linear-gradient(135deg, ${computedBgColor()}, ${computedBgColor()})` }">
             Sign In
           </button>
         </div>
@@ -233,7 +233,7 @@ const features = [
       <div class="home-final-cta-container">
         <h2 class="home-final-cta-title">Ready to build your vault?</h2>
         <p class="home-final-cta-desc">Create a space where your relationship can breathe.</p>
-        <button @click="router.push('/')" class="home-final-cta-btn" :style="{ background: `linear-gradient(135deg, ${computedBgColor()}, ${computedBgColor()})` }">
+        <button @click="router.push('/login')" class="home-final-cta-btn" :style="{ background: `linear-gradient(135deg, ${computedBgColor()}, ${computedBgColor()})` }">
           Get Started — It's Free
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>

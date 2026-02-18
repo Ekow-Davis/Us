@@ -196,8 +196,8 @@ const submitContact = async () => {
         </div>
         <div class="contact-footer-links">
           <button @click="router.push('/about')" class="contact-footer-link">About</button>
-          <button @click="router.push('/contact')" class="contact-footer-link">Contact</button>
-          <button @click="router.push('/')" class="contact-footer-link">Sign In</button>
+          <button @click="router.push('/')" class="contact-footer-link">Home</button>
+          <button @click="router.push('/login')" class="contact-footer-link">Sign In</button>
         </div>
         <p class="contact-footer-copy">© 2026 Us Vault. Built with love.</p>
       </div>
