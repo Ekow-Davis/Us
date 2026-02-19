@@ -269,7 +269,7 @@ onMounted(async () => {
       <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 
         <!-- Loading State -->
-        <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
+        <div v-if="isLoading" class="flex items-center justify-center min-h-100">
           <div class="flex flex-col items-center gap-3">
             <div class="flex gap-1">
               <span class="w-2 h-2 rounded-full bg-indigo-400 loading-dot" style="animation-delay:0s"></span>
@@ -281,7 +281,7 @@ onMounted(async () => {
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error && !seed" class="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div v-else-if="error && !seed" class="flex flex-col items-center justify-center min-h-100 gap-4">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="8" x2="12" y2="12"/>
@@ -330,7 +330,7 @@ onMounted(async () => {
 
           <!-- Alerts -->
           <div v-if="error" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" class="flex-shrink-0 mt-0.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" class="shrink-0 mt-0.5">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
               <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -339,7 +339,7 @@ onMounted(async () => {
           </div>
 
           <div v-if="successMessage" class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" class="flex-shrink-0 mt-0.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" class="shrink-0 mt-0.5">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             <p class="seed-body text-sm text-emerald-700 flex-1">{{ successMessage }}</p>

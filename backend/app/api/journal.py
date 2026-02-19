@@ -10,6 +10,8 @@ from app.models.journal import Journal
 from app.models.memory import Memory
 from app.models.vault_membership import VaultMembership
 from app.schemas.journal import JournalCreate, JournalUpdate, JournalResponse
+from app.schemas import memory
+from app.services.notification import create_notification
 
 router = APIRouter(prefix="/journals", tags=["Journals"])
 
@@ -52,6 +54,26 @@ def create_journal(
     db.add(journal)
     db.commit()
     db.refresh(journal)
+
+    if journal.visibility == "shared" and journal.vault_id:
+        partner = db.query(VaultMembership).filter(
+            VaultMembership.vault_id == journal.vault_id,
+            VaultMembership.user_id != current_user.id,
+            VaultMembership.left_at.is_(None)
+        ).first()
+
+    if partner:
+        create_notification(
+            db=db,
+            user_id=partner.user_id,
+            type="journal_shared",
+            title="Journal Shared",
+            message="Your partner shared a journal entry.",
+            reference_type="journal",
+            reference_id=journal.id
+        )
+
+    db.commit()
 
     return journal
 
@@ -96,6 +118,24 @@ def convert_journal_to_memory(
     journal.status = "converted"
     journal.memory_id = memory.id
 
+    db.commit()
+
+    partner = db.query(VaultMembership).filter(
+        VaultMembership.vault_id == journal.vault_id,
+        VaultMembership.user_id != current_user.id,
+        VaultMembership.left_at.is_(None)
+    ).first()
+
+    if partner:
+        create_notification(
+            db=db,
+            user_id=partner.user_id,
+            type="journal_converted",
+            title="Journal Became Memory ✨",
+            message="A shared journal was converted into a memory.",
+            reference_type="memory",
+            reference_id=memory.id
+        )
     db.commit()
 
     return {

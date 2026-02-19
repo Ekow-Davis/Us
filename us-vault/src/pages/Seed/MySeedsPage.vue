@@ -236,7 +236,7 @@ onMounted(async () => {
       <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 
         <!-- Loading State -->
-        <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
+        <div v-if="isLoading" class="flex items-center justify-center min-h-100">
           <div class="flex flex-col items-center gap-3">
             <div class="flex gap-1">
               <span class="w-2 h-2 rounded-full bg-indigo-400 loading-dot" style="animation-delay:0s"></span>

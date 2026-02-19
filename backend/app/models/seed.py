@@ -51,6 +51,11 @@ class Seed(Base):
         default="scheduled"  # scheduled | bloomed | cancelled
     )
 
+    bloom_notified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False
+    )
+
     views = relationship(
         "SeedView",
         backref="seed",

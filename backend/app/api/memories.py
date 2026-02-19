@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.memory import Memory
 from app.models.vault_membership import VaultMembership
 from app.schemas.memory import MemoryCreate, MemoryUpdate, MemoryResponse
+from app.services.notification import create_notification
 
 router = APIRouter(prefix="/memories", tags=["Memories"])
 
@@ -46,6 +47,27 @@ def create_memory(
     db.add(memory)
     db.commit()
     db.refresh(memory)
+
+    db.flush()
+
+    partner = db.query(VaultMembership).filter(
+        VaultMembership.vault_id == vault_id,
+        VaultMembership.user_id != current_user.id,
+        VaultMembership.left_at.is_(None)
+    ).first()
+
+    if partner:
+        create_notification(
+            db=db,
+            user_id=partner.user_id,
+            type="memory_created",
+            title="New Memory Created",
+            message="Your partner added a new memory.",
+            reference_type="memory",
+            reference_id=memory.id
+        )
+
+    db.commit()
 
     return memory
 

@@ -17,6 +17,7 @@ from app.models.vault_membership import VaultMembership
 from app.schemas.seed import SeedCreate, SeedResponse
 from app.models.seed_media import SeedMedia
 from app.models.memory_media import MemoryMedia
+from app.services.notification import create_notification
 
 SEED_UPLOAD_DIR = "uploads/seeds"
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "video/mp4"}
@@ -55,49 +56,30 @@ def get_active_seeds(
 
     result = []
 
+    now = datetime.now(timezone.utc)
+
     for seed in seeds:
-        views = db.query(SeedView).filter(
-            SeedView.seed_id == seed.id
-        ).all()
-
-        viewed_user_ids = {v.user_id for v in views}
-
-        has_viewed = current_user.id in viewed_user_ids
-        total_views = len(viewed_user_ids)
-
-        if has_viewed and total_views == 1:
-            status = "waiting_for_partner"
-        elif has_viewed and total_views >= 2:
-            status = "fully_bloomed"
-        else:
-            status = "ready"
-
-        # Media visibility rule:
-        # Only creator sees media during 24h edit window
+        # If ready AND not yet notified
         if (
-            seed.created_by == current_user.id and
-            datetime.now(timezone.utc) <= seed.created_at + timedelta(hours=24)
+            seed.status == "scheduled" and
+            seed.bloom_at <= now and
+            not seed.bloom_notified
         ):
-            media_list = [
-                {
-                    "id": m.id,
-                    "file_url": m.file_url,
-                    "file_type": m.file_type
-                }
-                for m in seed.media
-            ]
-        else:
-            media_list = []
+            # Notify creator if partner hasn't seen yet
+            if seed.created_by != current_user.id:
+                create_notification(
+                    db=db,
+                    user_id=seed.created_by,
+                    type="seed_ready",
+                    title="A Seed is Ready to Bloom 🌸",
+                    message="One of your seeds is ready to bloom.",
+                    reference_type="seed",
+                    reference_id=seed.id
+                )
 
-        result.append({
-            "id": seed.id,
-            "title": seed.title,
-            "bloom_at": seed.bloom_at,
-            "has_viewed": has_viewed,
-            "total_views": total_views,
-            "status": status,
-            "media": media_list
-        })
+            seed.bloom_notified = True
+        
+    db.commit()
 
     return result
 
@@ -268,7 +250,6 @@ def get_my_seeds(
         "total_pages": ceil(total / page_size)
     }
 
-
 @router.get("/summary")
 def get_seed_summary(
     db: Session = Depends(get_db),
@@ -343,6 +324,26 @@ def create_seed(
     )
 
     db.add(seed)
+    db.flush()  # so we get seed.id without committing yet
+
+    # Find partner
+    partner = db.query(VaultMembership).filter(
+        VaultMembership.vault_id == membership.vault_id,
+        VaultMembership.user_id != current_user.id,
+        VaultMembership.left_at.is_(None)
+    ).first()
+
+    if partner:
+        create_notification(
+            db=db,
+            user_id=partner.user_id,
+            type="seed_created",
+            title="New Seed Planted",
+            message="Your partner planted a new seed.",
+            reference_type="seed",
+            reference_id=seed.id
+        )
+
     db.commit()
     db.refresh(seed)
 
