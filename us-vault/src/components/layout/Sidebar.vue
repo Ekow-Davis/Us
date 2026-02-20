@@ -25,6 +25,17 @@
 
       <div class="flex-1"></div>
 
+      <!-- Notification Bell -->
+      <router-link to="/notifications" 
+                   class="relative w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-purple-50 text-purple-700 mr-2">
+        <Bell :size="20" />
+        <span v-if="unreadCount > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center animate-pulse-soft"
+              style="font-size: 0.65rem;">
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </router-link>
+
       <!-- Profile trigger -->
       <div class="relative" ref="profileMenuRef">
         <button @click="toggleProfileMenu"
@@ -55,10 +66,16 @@
                 <User :size="15" class="text-gray-400" />
                 <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Settings</span>
               </router-link>
-              <router-link to="/Notifications" @click="closeProfileMenu"
+              <router-link to="/notifications" @click="closeProfileMenu"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">
                 <Bell :size="15" class="text-gray-400" />
-                <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Notifications</span>
+                <div class="flex items-center justify-between flex-1">
+                  <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Notifications</span>
+                  <span v-if="unreadCount > 0" 
+                        class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-bold">
+                    {{ unreadCount }}
+                  </span>
+                </div>
               </router-link>
             </div>
             <div class="border-t border-gray-50 py-1">
@@ -79,8 +96,8 @@
       <!-- ── Sidebar ───────────────────────────────────────────────── -->
       <div ref="sidebarRef"
            :class="[
-             'sidebar-shell fixed md:relative top-0 md:top-auto left-0 z-30 flex flex-col transition-all duration-300 ease-in-out overflow-hidden',
-             'min-h-full md:h-[calc(100vh-60px)]',
+             'sidebar-shell fixed md:relative top-0 md:top-auto left-0 z-30 flex flex-col transition-all duration-300 ease-in-out',
+             'h-screen md:h-[calc(100vh-60px)]',
              isMobile
                ? (isSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full w-64')
                : isSidebarOpen ? 'w-64' : 'w-16'
@@ -104,7 +121,7 @@
         </div>
 
         <!-- Nav items -->
-        <nav class="relative z-10 flex-1 overflow-y-auto py-4 px-2" style="scrollbar-width: none;">
+        <nav class="relative z-10 flex-1 overflow-y-auto py-4 px-2 sidebar-scroll">
 
           <!-- Section: Main -->
           <div v-if="isSidebarOpen" class="px-3 mb-2">
@@ -213,6 +230,22 @@
           </div>
           <div v-else class="my-2 mx-auto w-6 h-px" style="background: rgba(124,58,237,0.3);"></div>
 
+          <router-link to="/notifications" :class="navClass('/notifications')">
+            <div :class="iconWrap('/notifications')" class="relative">
+              <Bell :size="16" />
+              <span v-if="unreadCount > 0" 
+                    class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 border border-purple-900 animate-pulse-soft"></span>
+            </div>
+            <span v-if="isSidebarOpen" class="nav-label flex items-center justify-between flex-1">
+              <span>Notifications</span>
+              <span v-if="unreadCount > 0" 
+                    class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-bold">
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
+            </span>
+            <div v-if="isSidebarOpen && isActive('/notifications')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
+          </router-link>
+
           <router-link to="/Settings" :class="navClass('/Settings')">
             <div :class="iconWrap('/Settings')">
               <Settings :size="16" />
@@ -232,30 +265,7 @@
 
         <!-- ── Sidebar Footer ────────────────────────────────────── -->
         <div class="relative z-10 shrink-0 p-3 border-t" style="border-color: rgba(124,58,237,0.2);">
-          <!-- Decorative flower in footer -->
-          <!-- <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 py-2">
-            <div class="flex-shrink-0">
-              <svg width="28" height="28" viewBox="0 0 100 100">
-                <g transform="translate(50,50)">
-                  <ellipse rx="8" ry="22" fill="#7c3aed" opacity="0.5" transform="rotate(0)"/>
-                  <ellipse rx="8" ry="22" fill="#a855f7" opacity="0.5" transform="rotate(60)"/>
-                  <ellipse rx="8" ry="22" fill="#7c3aed" opacity="0.5" transform="rotate(120)"/>
-                  <circle r="8" fill="#fbbf24" opacity="0.7"/>
-                </g>
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <p class="text-xs font-semibold text-purple-200 truncate" style="font-family:'Cormorant Garamond',serif; font-size:0.85rem; letter-spacing:0.01em;">{{ user.name }}</p>
-              <p class="text-xs truncate" style="color:rgba(167,139,250,0.6); font-size:0.7rem;">{{ user.email }}</p>
-            </div>
-          </div>
-          <div v-else class="flex justify-center py-1">
-            <div class="w-6 h-6 rounded-full" style="background:linear-gradient(135deg,#7c3aed,#c084fc);">
-              <svg width="24" height="24" viewBox="0 0 48 48">
-                <path d="M24 40C24 40 6 28 6 16C6 10.477 10.477 6 16 6C19.314 6 22.251 7.616 24 10.101C25.749 7.616 28.686 6 32 6C37.523 6 42 10.477 42 16C42 28 24 40 24 40Z" fill="white" opacity="0.9"/>
-              </svg>
-            </div>
-          </div> -->
+          <!-- Footer content can go here if needed -->
         </div>
 
         <!-- Bottom accent line -->
@@ -282,8 +292,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   Menu, Home, HelpCircle, Plus, Sprout, FilePlus, Heart,
   Shield, Zap, Settings, ChevronsUpDown, LogOut, Bell, User,
-  Book,
-  Bean
+  Book, Bean
 } from 'lucide-vue-next'
 
 const route  = useRoute()
@@ -294,6 +303,7 @@ const isMobile         = ref(window.innerWidth < 768)
 const isProfileMenuOpen = ref(false)
 const sidebarRef       = ref(null)
 const profileMenuRef   = ref(null)
+const unreadCount      = ref(2) // This will be fetched from API
 
 const user = ref({
   name: 'John Doe',
@@ -336,6 +346,20 @@ const iconWrap = (path) => {
   ]
 }
 
+// Fetch unread notifications count
+const fetchUnreadCount = async () => {
+  try {
+    // Mock API call - replace with actual API
+    await new Promise(resolve => setTimeout(resolve, 200))
+    // const response = await fetch('/api/notifications/unread-count')
+    // const data = await response.json()
+    // unreadCount.value = data.unread_count
+    unreadCount.value = 2 // Mock value
+  } catch (error) {
+    console.error('Failed to fetch unread count:', error)
+  }
+}
+
 const handleResize = () => { isMobile.value = window.innerWidth < 768 }
 const handleClickOutside = (e) => {
   if (isMobile.value && isSidebarOpen.value && sidebarRef.value && !sidebarRef.value.contains(e.target)) {
@@ -350,6 +374,17 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
   document.addEventListener('mousedown', handleClickOutside)
   if (window.innerWidth < 768) isSidebarOpen.value = false
+  
+  // Fetch unread count on mount
+  fetchUnreadCount()
+  
+  // Poll for updates every 30 seconds
+  const interval = setInterval(fetchUnreadCount, 30000)
+  
+  // Cleanup
+  onUnmounted(() => {
+    clearInterval(interval)
+  })
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -363,7 +398,34 @@ onUnmounted(() => {
   box-shadow: 4px 0 32px rgba(0,0,0,0.35), 1px 0 0 rgba(124,58,237,0.15);
 }
 
-/* ── Nav items ────────────────────────────────────────────────── */
+/* ── Sidebar scroll ───────────────────────────────────────────── */
+.sidebar-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(124,58,237,0.3);
+  border-radius: 2px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(124,58,237,0.5);
+}
+
+/* Firefox scrollbar */
+/*.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124,58,237,0.3) transparent;
+}*/
+
+/* ── Nav items ──────── */
 .nav-label {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.8125rem;
@@ -423,15 +485,10 @@ onUnmounted(() => {
   transform: translateY(-6px) scale(0.97);
 }
 
-/* ── Scrollbar ───────────────────────────────────────────────── */
-nav::-webkit-scrollbar {
-  width: 3px;
+/* ── Pulse animation ──────────────────────────────────────────── */
+@keyframes pulseSoft {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.5; }
 }
-nav::-webkit-scrollbar-track {
-  background: transparent;
-}
-nav::-webkit-scrollbar-thumb {
-  background: rgba(124,58,237,0.3);
-  border-radius: 2px;
-}
+.animate-pulse-soft { animation: pulseSoft 2s ease-in-out infinite; }
 </style>

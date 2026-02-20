@@ -33,10 +33,10 @@ import JournalPage from '../pages/Journal/JournalPage.vue'
 import SignalPage from '../pages/Signal/SignalPage.vue'
 
 // Settings
+import NotificationPage from '../pages/Settings/NotificationPage.vue'
 import SettingsPage from '../pages/Settings/SettingsPage.vue'
-
-// Help
 import HelpPage from '../pages/Help/HelpPage.vue'
+
 
 const routes = [
   // Routes that don't require authentication
@@ -63,11 +63,10 @@ const routes = [
   { path: '/memories/:id', name: 'memory-detail', component: MemoryDetailPage },
 
   { path: '/journal', name: 'journal', component: JournalPage, },
-
   { path: '/signal', name: 'signal', component: SignalPage, },
 
   { path: '/settings', name: 'settings', component: SettingsPage, },
-
+  { path: '/notifications', name: 'notifications', component: NotificationPage, },
   { path: '/help', name: 'help', component: HelpPage, },
 
   { path: '/:pathMatch(.*)*',   redirect: '/' },
