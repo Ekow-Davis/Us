@@ -119,7 +119,7 @@ onUnmounted(() => {
     <!-- Inactivity Modal Overlay -->
     <Transition name="inactivity-modal">
       <div v-if="showInactivityModal"
-           class="fixed inset-0 z-[9999] flex items-start justify-center pt-20 px-4"
+           class="fixed inset-0 z-9999 flex items-start justify-center pt-20 px-4"
            style="background: rgba(15,23,42,0.75); backdrop-filter: blur(8px);">
         
         <div class="inactivity-modal-card relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full"
@@ -130,7 +130,7 @@ onUnmounted(() => {
 
           <div class="p-6 md:p-8">
             <!-- Icon -->
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-linear-to-br from-purple-100 to-pink-100 flex items-center justify-center">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <polyline points="12 6 12 12 16 14"/>
