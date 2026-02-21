@@ -9,3 +9,4 @@ from .seed_view import SeedView
 from .thinking_signal import ThinkingSignal
 from .journal import Journal
 from .notification import Notification
+from .password_reset import PasswordResetToken
