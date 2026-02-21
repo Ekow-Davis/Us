@@ -130,10 +130,12 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
                       :class="['pag-btn', currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-rose-50 hover:text-rose-600']">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <template v-for="(p, i) in pageNumbers" :key="i">
-                <span v-if="p === '...'" class="px-1 text-gray-400 mem-body text-sm">…</span>
+              <template v-for="(p, i) in pageNumbers">
+                <span v-if="p === '...'"  :key="'ellipsis-' + i" class="px-1 text-gray-400 mem-body text-sm">…</span>
                 <button v-else @click="goToPage(p)"
-                        :class="['pag-btn', currentPage === p ? 'bg-rose-500 text-white shadow-sm' : 'hover:bg-rose-50 hover:text-rose-600']">
+                        :class="['pag-btn', currentPage === p ? 'bg-rose-500 text-white shadow-sm' : 'hover:bg-rose-50 hover:text-rose-600']"
+                        :key="'page-' + p"
+                        >
                   {{ p }}
                 </button>
               </template>
@@ -218,13 +220,13 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
                       :class="['pag-btn', currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-rose-50 hover:text-rose-600']">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <template v-for="(p, i) in pageNumbers" :key="i">
+              <div v-for="(p, i) in pageNumbers" :key="i">
                 <span v-if="p === '...'" class="px-1 text-gray-400 mem-body text-sm">…</span>
                 <button v-else @click="goToPage(p)"
                         :class="['pag-btn', currentPage === p ? 'bg-rose-500 text-white shadow-sm' : 'hover:bg-rose-50 hover:text-rose-600']">
                   {{ p }}
                 </button>
-              </template>
+              </div>
               <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
                       :class="['pag-btn', currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-rose-50 hover:text-rose-600']">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -277,6 +279,7 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
 
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

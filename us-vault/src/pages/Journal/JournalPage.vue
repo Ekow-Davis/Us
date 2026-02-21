@@ -244,14 +244,14 @@ watch(activeTab, () => {
 
         <!-- Breadcrumbs -->
         <div class="flex items-center gap-2 mb-6">
-          <template v-for="(crumb, idx) in breadcrumbs" :key="idx">
+          <div v-for="(crumb, idx) in breadcrumbs" :key="idx">
             <button v-if="crumb.action" @click="crumb.action"
                     class="journal-breadcrumb journal-breadcrumb--link">
               {{ crumb.label }}
             </button>
             <span v-else class="journal-breadcrumb">{{ crumb.label }}</span>
             <svg v-if="idx < breadcrumbs.length - 1" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </template>
+          </div>
         </div>
 
         <!-- ══════════════════ LIST VIEW ══════════════════ -->
@@ -589,6 +589,7 @@ watch(activeTab, () => {
   color: #6b7280;
   line-height: 1.6;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

@@ -252,7 +252,7 @@ onMounted(async () => {
         <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 
           <!-- Loading State -->
-          <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
+          <div v-if="isLoading" class="flex items-center justify-center min-h-100">
             <div class="flex flex-col items-center gap-3">
               <div class="flex gap-1">
                 <span class="w-2 h-2 rounded-full bg-indigo-400 loading-dot" style="animation-delay:0s"></span>
@@ -317,10 +317,10 @@ onMounted(async () => {
                 <button @click="goToPage(currentPage-1)" :disabled="currentPage===1" :class="['pag-btn', currentPage===1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-                <template v-for="(p,i) in pageNumbers" :key="i">
+                <div v-for="(p,i) in pageNumbers" :key="i">
                   <span v-if="p==='...'" class="px-1 text-slate-400 seed-body text-sm">…</span>
                   <button v-else @click="goToPage(p)" :class="['pag-btn', currentPage===p ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-indigo-50 hover:text-indigo-600']">{{ p }}</button>
-                </template>
+                </div>
                 <button @click="goToPage(currentPage+1)" :disabled="currentPage===totalPages" :class="['pag-btn', currentPage===totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 </button>
@@ -457,10 +457,10 @@ onMounted(async () => {
                 <button @click="goToPage(currentPage-1)" :disabled="currentPage===1" :class="['pag-btn', currentPage===1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-                <template v-for="(p,i) in pageNumbers" :key="i">
+                <div v-for="(p,i) in pageNumbers" :key="i">
                   <span v-if="p==='...'" class="px-1 text-slate-400 seed-body text-sm">…</span>
                   <button v-else @click="goToPage(p)" :class="['pag-btn', currentPage===p ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-indigo-50 hover:text-indigo-600']">{{ p }}</button>
-                </template>
+                </div>
                 <button @click="goToPage(currentPage+1)" :disabled="currentPage===totalPages" :class="['pag-btn', currentPage===totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 </button>
@@ -523,7 +523,7 @@ onMounted(async () => {
                     <p class="seed-body text-indigo-200 mb-6 text-sm md:text-base">This seed is ready to bloom. Once you view it, it will transform into a memory.</p>
                     <button @click="handleViewSeed"
                             :disabled="isViewing"
-                            class="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold seed-body hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="px-8 py-3 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold seed-body hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
                       {{ isViewing ? 'Blooming…' : 'Bloom Now' }}
                     </button>
                   </div>
@@ -567,7 +567,7 @@ onMounted(async () => {
                     <div class="mt-8 text-center">
                       <p class="seed-body text-indigo-300 text-sm mb-4">This seed has bloomed into a memory</p>
                       <button @click="viewMemory(currentReadySeed.memory_id || `mem-${currentReadySeed.id}`)"
-                              class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold seed-body hover:from-pink-500 hover:to-rose-500 transition-all shadow-lg">
+                              class="px-6 py-2.5 rounded-xl bg-linear-to-r from-pink-600 to-rose-600 text-white font-semibold seed-body hover:from-pink-500 hover:to-rose-500 transition-all shadow-lg">
                         View in Memories
                       </button>
                     </div>
@@ -628,6 +628,7 @@ onMounted(async () => {
 
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
