@@ -36,4 +36,3 @@ app.include_router(seed_router)
 app.include_router(thinking_router)
 app.include_router(journal_router)
 app.include_router(notifications_router)
-
