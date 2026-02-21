@@ -297,12 +297,12 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Explainer card -->
-            <div class="relative bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-100 rounded-2xl px-8 py-6 text-left shadow-sm overflow-hidden">
+            <div class="relative bg-linear-to-br from-purple-50 to-fuchsia-50 border border-purple-100 rounded-2xl px-8 py-6 text-left shadow-sm overflow-hidden">
               <div class="absolute top-0 right-0 w-32 h-32 opacity-10">
                 <svg viewBox="0 0 100 100"><g transform="translate(50,50)"><ellipse rx="14" ry="44" fill="#7c3aed" transform="rotate(0)"/><ellipse rx="14" ry="44" fill="#a855f7" transform="rotate(60)"/><ellipse rx="14" ry="44" fill="#7c3aed" transform="rotate(120)"/><circle r="14" fill="#fbbf24"/></g></svg>
               </div>
               <div class="flex gap-4 items-start">
-                <div class="mt-0.5 w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <div class="mt-0.5 w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
@@ -362,7 +362,7 @@ const handleSubmit = async () => {
                 <span :class="bloomAt ? 'text-gray-800' : 'text-gray-400'">
                   {{ bloomAt ? formattedBloomAt : 'Choose when this seed will bloom...' }}
                 </span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-purple-400 flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-purple-400 shrink-0">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
               </button>

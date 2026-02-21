@@ -283,7 +283,7 @@ onMounted(() => {
       <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 
         <!-- Loading State -->
-        <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
+        <div v-if="isLoading" class="flex items-center justify-center min-h-100">
           <div class="flex flex-col items-center gap-3">
             <div class="flex gap-1">
               <span class="w-2 h-2 rounded-full bg-indigo-400 loading-dot" style="animation-delay:0s"></span>
@@ -354,7 +354,7 @@ onMounted(() => {
                 'notif-card group relative bg-white rounded-xl p-4 md:p-5 border transition-all duration-200 cursor-pointer',
                 notification.is_read 
                   ? 'border-slate-200 hover:border-indigo-200' 
-                  : 'border-indigo-200 hover:border-indigo-300 bg-gradient-to-br from-white to-indigo-50/30',
+                  : 'border-indigo-200 hover:border-indigo-300 bg-linear-to-br from-white to-indigo-50/30',
                 getNotificationColor(notification.type)
               ]"
               :style="`animation-delay:${idx*50}ms`">
@@ -365,7 +365,7 @@ onMounted(() => {
 
               <div :class="['flex items-start gap-4', notification.is_read ? 'pl-0' : 'pl-4']">
                 <!-- Icon -->
-                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl">
+                <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl">
                   {{ getNotificationIcon(notification.type) }}
                 </div>
 
@@ -388,7 +388,7 @@ onMounted(() => {
                 <button 
                   v-if="!notification.is_read"
                   @click="handleMarkAsRead(notification, $event)"
-                  class="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center text-indigo-600 transition opacity-0 group-hover:opacity-100"
+                  class="shrink-0 w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center text-indigo-600 transition opacity-0 group-hover:opacity-100"
                   title="Mark as read">
                   <Check :size="16" />
                 </button>

@@ -101,7 +101,7 @@ onMounted(loadVaultDetails)
           <!-- Locket chain motif top -->
           <div class="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0">
             <div v-for="i in 6" :key="i"
-                class="w-0.5 bg-gradient-to-b from-purple-200 to-transparent"
+                class="w-0.5 bg-linear-to-b from-purple-200 to-transparent"
                 :style="`height: ${14 + i * 4}px; opacity: ${0.6 - i * 0.08};`"></div>
           </div>
 
@@ -215,12 +215,12 @@ onMounted(loadVaultDetails)
 
               <!-- Divider -->
               <div class="flex flex-col items-center gap-2 text-purple-600">
-                <div class="w-px h-8 bg-gradient-to-b from-transparent via-purple-600 to-transparent hidden sm:block"></div>
+                <div class="w-px h-8 bg-linear-to-b from-transparent via-purple-600 to-transparent hidden sm:block"></div>
                 <svg width="28" height="28" viewBox="0 0 48 48" fill="none" class="opacity-60">
                   <path d="M24 40C24 40 6 28 6 16C6 10.477 10.477 6 16 6C19.314 6 22.251 7.616 24 10.101C25.749 7.616 28.686 6 32 6C37.523 6 42 10.477 42 16C42 28 24 40 24 40Z"
                         fill="#7c3aed"/>
                 </svg>
-                <div class="w-px h-8 bg-gradient-to-b from-transparent via-purple-600 to-transparent hidden sm:block"></div>
+                <div class="w-px h-8 bg-linear-to-b from-transparent via-purple-600 to-transparent hidden sm:block"></div>
               </div>
 
               <!-- Person B -->

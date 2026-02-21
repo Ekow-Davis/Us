@@ -240,7 +240,7 @@ const downloadMedia = (url, filename) => {
             <button v-if="prevMemory" @click="router.push(`/memories/${prevMemory.id}`)"
                     class="flex-1 flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-rose-200 hover:shadow-md transition-all group text-left"
                     style="max-width: 260px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5" class="flex-shrink-0 transition-transform group-hover:-translate-x-0.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5" class="shrink-0 transition-transform group-hover:-translate-x-0.5"><polyline points="15 18 9 12 15 6"/></svg>
               <div class="min-w-0">
                 <p class="detail-body text-xs text-gray-400 uppercase tracking-wide">Previous</p>
                 <p class="detail-body text-sm text-gray-700 font-semibold truncate">{{ prevMemory.title }}</p>
@@ -255,7 +255,7 @@ const downloadMedia = (url, filename) => {
                 <p class="detail-body text-xs text-gray-400 uppercase tracking-wide">Next</p>
                 <p class="detail-body text-sm text-gray-700 font-semibold truncate">{{ nextMemory.title }}</p>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5" class="flex-shrink-0 transition-transform group-hover:translate-x-0.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5" class="shrink-0 transition-transform group-hover:translate-x-0.5"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
 

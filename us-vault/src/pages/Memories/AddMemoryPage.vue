@@ -180,7 +180,7 @@ const handleSubmit = async () => {
                 <!-- Polaroid icon -->
                 <div class="relative w-12 h-14 bg-white rounded-sm shadow-md flex flex-col items-center justify-center border border-gray-100"
                     style="transform: rotate(-5deg); box-shadow: 0 3px 12px rgba(244,63,94,0.12);">
-                  <div class="w-8 h-7 rounded-sm bg-gradient-to-br from-rose-100 to-pink-100 mb-1"></div>
+                  <div class="w-8 h-7 rounded-sm bg-linear-to-br from-rose-100 to-pink-100 mb-1"></div>
                   <div class="w-6 h-0.5 bg-gray-200 rounded"></div>
                 </div>
                 <div>
@@ -339,7 +339,7 @@ const handleSubmit = async () => {
                 <div class="h-1 w-full" style="background: linear-gradient(90deg, #f43f5e, #db2777, #7c3aed);"></div>
 
                 <!-- Media area -->
-                <div class="relative bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center overflow-hidden"
+                <div class="relative bg-linear-to-br from-rose-50 to-pink-50 flex items-center justify-center overflow-hidden"
                     style="min-height: 200px;">
                   <img v-if="mediaType === 'image' && mediaPreviewUrl" :src="mediaPreviewUrl"
                       class="w-full object-cover" style="max-height: 220px;"/>
@@ -384,7 +384,7 @@ const handleSubmit = async () => {
                   <!-- Footer meta -->
                   <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
                     <div class="flex items-center gap-1.5">
-                      <div class="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
+                      <div class="w-5 h-5 rounded-full bg-linear-to-br from-rose-400 to-pink-500 flex items-center justify-center">
                         <span class="text-white text-xs font-bold">Y</span>
                       </div>
                       <span class="mem-body text-xs text-gray-400">You</span>
@@ -443,7 +443,7 @@ const handleSubmit = async () => {
                 <div class="bg-white rounded-2xl overflow-hidden border border-rose-50"
                     style="box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
                   <div class="h-0.5 w-full" style="background: linear-gradient(90deg, #f43f5e, #db2777, #7c3aed);"></div>
-                  <div class="relative bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center overflow-hidden" style="min-height: 140px;">
+                  <div class="relative bg-linear-to-br from-rose-50 to-pink-50 flex items-center justify-center overflow-hidden" style="min-height: 140px;">
                     <img v-if="mediaType === 'image' && mediaPreviewUrl" :src="mediaPreviewUrl" class="w-full object-cover" style="max-height:160px;"/>
                     <video v-else-if="mediaType === 'video' && mediaPreviewUrl" :src="mediaPreviewUrl" autoplay loop muted playsinline class="w-full object-cover" style="max-height:160px;"></video>
                     <div v-else class="py-8 text-rose-200 flex flex-col items-center gap-2">
@@ -463,7 +463,7 @@ const handleSubmit = async () => {
                     </p>
                     <div class="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
                       <div class="flex items-center gap-1">
-                        <div class="w-4 h-4 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-linear-to-br from-rose-400 to-pink-500 flex items-center justify-center">
                           <span class="text-white" style="font-size:8px; font-weight:700;">Y</span>
                         </div>
                         <span class="mem-body text-xs text-gray-400">You</span>

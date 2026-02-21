@@ -155,7 +155,7 @@ const mockSessions = [
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 pb-20 flex flex-col lg:flex-row gap-6">
 
           <!-- ── Inner tab sidebar (desktop) ───────────────────────── -->
-          <aside class="hidden lg:flex flex-col gap-1 w-52 flex-shrink-0 pt-1">
+          <aside class="hidden lg:flex flex-col gap-1 w-52 shrink-0 pt-1">
             <!-- Hibiscus small inside sidebar -->
             <div class="relative mb-4 px-3">
               <img src="../images/hibiscus_placeholder.png" alt=""
@@ -175,7 +175,7 @@ const mockSessions = [
           </aside>
 
           <!-- ── Mobile tab scroller ───────────────────────────────── -->
-          <div class="lg:hidden w-full overflow-x-auto pb-1 -mx-0">
+          <div class="lg:hidden w-full overflow-x-auto pb-1 mx-0">
             <div class="flex gap-2 min-w-max px-0.5 py-1">
               <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
                       :class="['mobile-tab-btn', activeTab === tab.id ? 'mobile-tab-btn--active' : '']">
@@ -339,7 +339,7 @@ const mockSessions = [
                 <!-- Current vault info -->
                 <div class="settings-card" style="background: linear-gradient(145deg,#1e1530,#2d1b4e); border-color: rgba(124,58,237,0.3);">
                   <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg,#7c3aed,#a855f7);">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg,#7c3aed,#a855f7);">
                       <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
                         <path d="M24 40C24 40 6 28 6 16C6 10.477 10.477 6 16 6C19.314 6 22.251 7.616 24 10.101C25.749 7.616 28.686 6 32 6C37.523 6 42 10.477 42 16C42 28 24 40 24 40Z" fill="white"/>
                       </svg>
@@ -366,7 +366,7 @@ const mockSessions = [
 
                   <div class="mt-4 p-4 rounded-xl border border-amber-100 bg-amber-50">
                     <div class="flex gap-2.5 items-start">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" class="flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" class="shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                       <p class="settings-body text-amber-800" style="font-size:0.78rem; line-height:1.6;">Switching vaults will <strong>permanently remove you</strong> from your current vault. All your added memories stay in the vault, but you'll lose access. This cannot be undone.</p>
                     </div>
                   </div>
