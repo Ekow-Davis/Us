@@ -128,12 +128,12 @@
             <span class="text-xs font-semibold uppercase tracking-widest" style="color: rgba(192,132,252,0.4); font-family:'DM Sans',sans-serif; font-size:0.65rem;">Navigate</span>
           </div>
 
-          <router-link to="/Dashboard" :class="navClass('/Dashboard')">
-            <div :class="iconWrap('/Dashboard')">
+          <router-link to="/dashboard" :class="navClass('/dashboard')">
+            <div :class="iconWrap('/dashboard')">
               <Home :size="16" />
             </div>
             <span v-if="isSidebarOpen" class="nav-label">Dashboard</span>
-            <div v-if="isSidebarOpen && isActive('/Dashboard')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
+            <div v-if="isSidebarOpen && isActive('/dashboard')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
           </router-link>
 
           <!-- Section: Seeds -->

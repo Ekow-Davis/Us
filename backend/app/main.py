@@ -15,7 +15,7 @@ app = FastAPI(title="Shared Memory Vault API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://yourfrontend.com"],
+    allow_origins=["https://usvault.vercel.app", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
