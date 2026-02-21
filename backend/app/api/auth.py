@@ -10,7 +10,7 @@ from app.config.database import get_db
 from app.config.security import hash_password, verify_password, create_access_token
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
-from app.schemas.auth import ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
+from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
 from app.models.password_reset import PasswordResetToken
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -142,3 +142,22 @@ def reset_password(
     db.commit()
 
     return {"message": "Password reset successful"}
+
+
+@router.post("/change-email")
+def change_email(
+    data: ChangeEmailRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not verify_password(data.password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+
+    existing = db.query(User).filter(User.email == data.new_email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already in use")
+
+    current_user.email = data.new_email
+    db.commit()
+
+    return {"message": "Email updated successfully"}
