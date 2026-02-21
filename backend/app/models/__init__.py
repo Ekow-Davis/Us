@@ -10,3 +10,4 @@ from .thinking_signal import ThinkingSignal
 from .journal import Journal
 from .notification import Notification
 from .password_reset import PasswordResetToken
+from .refresh_token import RefreshToken

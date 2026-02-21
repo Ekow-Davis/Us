@@ -1,13 +1,15 @@
 import random
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
+from app.models.refresh_token import RefreshToken
+
 from app.api.deps import get_current_user
 from app.config.database import get_db
-from app.config.security import hash_password, verify_password, create_access_token
+from app.config.security import hash_password, verify_password, create_access_token, REFRESH_TOKEN_EXPIRE_DAYS
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
@@ -40,29 +42,71 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 # login endpoint - returns JWT token on successful authentication
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    response: Response = None
 ):
     user = db.query(User).filter(
         User.email == form_data.username
     ).first()
 
     if not user or not verify_password(form_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
-        )
-
-    user.last_login_at = datetime.utcnow()
-    db.commit()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token({"sub": str(user.id)})
 
+    refresh_token = RefreshToken(
+        user_id=user.id,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    )
+
+    db.add(refresh_token)
+    db.commit()
+    db.refresh(refresh_token)
+
+    response.set_cookie(
+        key="refresh_token",
+        value=str(refresh_token.id),
+        httponly=True,
+        secure=True,
+        samesite="lax"
+    )
+
     return {"access_token": access_token}
 
-# Post Log In Endpoints
+
+# Needs Log In Endpoints
+# Refresh Token Endpoint
+@router.post("/refresh")
+def refresh_access_token(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    refresh_token_id = request.cookies.get("refresh_token")
+
+    if not refresh_token_id:
+        raise HTTPException(status_code=401, detail="No refresh token")
+
+    token_record = db.query(RefreshToken).filter(
+        RefreshToken.id == refresh_token_id
+    ).first()
+
+    if not token_record:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    if token_record.expires_at < datetime.now(timezone.utc):
+        db.delete(token_record)
+        db.commit()
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    new_access_token = create_access_token(
+        {"sub": str(token_record.user_id)}
+    )
+
+    return {"access_token": new_access_token}
+
 
 # endpoint to get current user info based on JWT token
 @router.get("/me", response_model=UserResponse)
@@ -71,6 +115,7 @@ def get_me(
 ):
     return current_user
 
+# endpoint to change password
 @router.post("/change-password")
 def change_password(
     data: ChangePasswordRequest,
@@ -88,7 +133,7 @@ def change_password(
 
     return {"message": "Password updated successfully"}
 
-
+# endpoint to handle forgot password - generates OTP and stores in DB, then would send email with OTP (email sending not implemented yet)
 @router.post("/forgot-password")
 def forgot_password(
     data: ForgotPasswordRequest,
@@ -115,6 +160,7 @@ def forgot_password(
 
     return {"message": "If email exists, OTP sent."}
 
+# endpoint to reset password using OTP
 @router.post("/reset-password")
 def reset_password(
     data: ResetPasswordRequest,
@@ -143,7 +189,7 @@ def reset_password(
 
     return {"message": "Password reset successful"}
 
-
+# endpoint to change email - requires current password for verification
 @router.post("/change-email")
 def change_email(
     data: ChangeEmailRequest,
@@ -161,3 +207,24 @@ def change_email(
     db.commit()
 
     return {"message": "Email updated successfully"}
+
+@router.post("/logout")
+def logout(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db)
+):
+    refresh_token_id = request.cookies.get("refresh_token")
+
+    if refresh_token_id:
+        token = db.query(RefreshToken).filter(
+            RefreshToken.id == refresh_token_id
+        ).first()
+
+        if token:
+            db.delete(token)
+            db.commit()
+
+    response.delete_cookie("refresh_token")
+
+    return {"message": "Logged out"}
