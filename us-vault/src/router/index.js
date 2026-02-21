@@ -6,6 +6,7 @@ import HomeView from '../pages/Home/HomeView.vue'
 import ContactPage from '../pages/Home/ContactPage.vue'
 import AboutPage from '../pages/Home/AboutPage.vue'
 import LoginView from '../pages/Home/LoginPage.vue'
+import ForgotPasswordView from '../pages/Home/ForgotPassword.vue'
 import RegistrationTransferView from '../pages/General/RegistrationTransferPage.vue'
 
 // Main System Pages
@@ -46,6 +47,7 @@ const routes = [
 
   // Authentication routes
   { path: '/login', name: 'login', component: LoginView, },
+  { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView, },
 
   // Protected routes (require authentication)
   { path: '/registration-transfer', name: 'registration-transfer', component: RegistrationTransferView, },

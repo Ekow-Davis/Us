@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
+import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { Bell, Check, CheckCheck, Trash2, Inbox } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -266,7 +267,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <Sidebar>
+  <InactivityOverlay>
+      <Sidebar>
     <div class="notifications-page min-h-screen relative overflow-x-hidden">
       <component :is="'style'">
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
@@ -417,6 +419,8 @@ onMounted(() => {
       </div>
     </div>
   </Sidebar>
+  </InactivityOverlay>
+
 </template>
 
 <style scoped>

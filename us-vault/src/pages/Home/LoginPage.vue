@@ -72,6 +72,10 @@ const handleRegister = () => {
           <button class="btn-pink" type="submit">
             Login
           </button>
+
+          <p>
+            <router-link to="/forgot-password" class="m-2 text-blue-400 underline">Forgot your password?</router-link>
+          </p>
         </form>
 
         <!-- REGISTER -->
