@@ -158,7 +158,7 @@ onUnmounted(() => {
               </button>
               <button @click="handleStillHere"
                       :disabled="isRefreshing"
-                      class="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex-1 px-6 py-3 rounded-xl bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       style="font-family: 'Inter', sans-serif; font-size: 0.9375rem;">
                 {{ isRefreshing ? 'Refreshing...' : 'Yes, I\'m Here' }}
               </button>
