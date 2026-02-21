@@ -1,4 +1,5 @@
 import random
+from urllib import response
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -14,8 +15,18 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
 from app.models.password_reset import PasswordResetToken
+from backend.app.models import refresh_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    secure=True,        # True in production
+    samesite="lax",
+    max_age=60*60*24*7
+)
 
 
 @router.post("/register", response_model=UserResponse)

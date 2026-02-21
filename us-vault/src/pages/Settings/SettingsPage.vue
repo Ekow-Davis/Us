@@ -128,11 +128,11 @@ const mockSessions = [
         <!-- ── Background ─────────────────────────────────────────── -->
         <div class="pointer-events-none select-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <!-- Hibiscus top-right -->
-          <img src="../images/hibiscus_placeholder.png" alt=""
+          <img src="/public/images/hibiscus_placeholder.png" alt=""
               class="absolute -top-8 -right-8 w-64 opacity-[0.07] rotate-12 select-none pointer-events-none"
               style="filter: hue-rotate(260deg) saturate(0.6);"/>
           <!-- Hibiscus bottom-left -->
-          <img src="../images/hibiscus_placeholder.png" alt=""
+          <img src="/public/images/hibiscus_placeholder.png" alt=""
               class="absolute -bottom-12 -left-10 w-56 opacity-[0.06] -rotate-12 scale-x-[-1] select-none pointer-events-none"
               style="filter: hue-rotate(280deg) saturate(0.5);"/>
           <!-- Ambient orb -->
@@ -158,7 +158,7 @@ const mockSessions = [
           <aside class="hidden lg:flex flex-col gap-1 w-52 shrink-0 pt-1">
             <!-- Hibiscus small inside sidebar -->
             <div class="relative mb-4 px-3">
-              <img src="../images/hibiscus_placeholder.png" alt=""
+              <img src="/public/images/hibiscus_placeholder.png" alt=""
                   class="w-10 h-10 opacity-30 mx-auto"
                   style="filter: hue-rotate(260deg) saturate(0.7);"/>
             </div>
@@ -455,7 +455,7 @@ const mockSessions = [
                         {{ displayName?.charAt(0) || 'U' }}
                       </div>
                       <!-- Small hibiscus badge -->
-                      <img src="../images/hibiscus_placeholder.png" alt=""
+                      <img src="/public/images/hibiscus_placeholder.png" alt=""
                           class="absolute -bottom-1 -right-1 w-5 h-5 opacity-60"
                           style="filter: hue-rotate(260deg) saturate(0.8);"/>
                     </div>

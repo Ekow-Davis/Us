@@ -134,7 +134,7 @@ const handleRegister = () => {
             Sign Up
           </button>
         </div>
-        <img src="../../../images/undraw_spread-love_0ekp.svg" class="image" />
+        <img src="/public/images/undraw_spread-love_0ekp.svg" class="image" />
       </div>
 
       <!-- Register PANEL -->
@@ -146,7 +146,7 @@ const handleRegister = () => {
             Sign In
           </button>
         </div>
-        <img src="../../../images/undraw_intense-feeling_4i8u.svg" class="image" />
+        <img src="/public/images/undraw_intense-feeling_4i8u.svg" class="image" />
       </div>
     </div>
   </div>

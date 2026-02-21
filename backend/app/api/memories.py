@@ -71,7 +71,6 @@ def create_memory(
 
     return memory
 
-
 @router.get("/")
 def list_memories(
     page: int = 1,
@@ -129,7 +128,6 @@ def get_my_memories(
         "total_pages": ceil(total / page_size)
     }
 
-
 @router.get("/{memory_id}", response_model=MemoryResponse)
 def get_memory(
     memory_id: str,
@@ -148,7 +146,6 @@ def get_memory(
         raise HTTPException(status_code=404, detail="Memory not found")
 
     return memory
-
 
 @router.put("/{memory_id}", response_model=MemoryResponse)
 def update_memory(
