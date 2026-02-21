@@ -176,11 +176,11 @@ const currentImageIndex = ref(0);
 
 // Carousel images
 const carouselImages = ref([
-  '../../../public/images/undraw_effortless-love_zg5q.svg',
-  '../../../public/images/undraw_intense-feeling_4i8u.svg',
-  '../../../public/images/undraw_love-messages_9oca.svg',
-  '../../../public/images/undraw_pure-love_cvaw.svg',
-  '../../../public/images/undraw_spread-love_0ekp.svg',
+  './images/undraw_effortless-love_zg5q.svg',
+  './images/undraw_intense-feeling_4i8u.svg',
+  './images/undraw_love-messages_9oca.svg',
+  './images/undraw_pure-love_cvaw.svg',
+  './images/undraw_spread-love_0ekp.svg',
 ]);
 
 let carouselInterval = null;
