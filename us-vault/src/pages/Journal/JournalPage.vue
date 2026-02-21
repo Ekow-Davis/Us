@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
+import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const activeTab = ref('private') // 'private' | 'shared'
@@ -219,7 +220,8 @@ watch(activeTab, () => {
 </script>
 
 <template>
-  <Sidebar>
+  <InactivityOverlay>
+    <Sidebar>
     <div class="journal-page">
       <component :is="'style'">
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -482,7 +484,9 @@ watch(activeTab, () => {
         </div>
       </Transition>
     </div>
-  </Sidebar>
+    </Sidebar>
+  </InactivityOverlay>
+
 </template>
 
 <style scoped>

@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue' // Assuming same path as your example
 import { BookOpen, Image as ImageIcon, Heart, Share2, Shield, Settings } from 'lucide-vue-next'
+import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
 // ── Data: Help Sections ──────────────────────────────────────────────────────
 // This drives the content. The 'image' part currently uses a placeholder div,
@@ -78,156 +79,158 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Sidebar>
-    <div class="help-page min-h-screen relative overflow-x-hidden">
-      
-      <!-- ── Global Styles/Fonts ────────────────────────────────────────── -->
-      <component :is="'style'">
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
-      </component>
-
-      <!-- ── Background Atmosphere (Matching Vault.vue) ─────────────────── -->
-      <div class="fixed inset-0 pointer-events-none select-none" aria-hidden="true">
-        <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-20"
-             style="background: radial-gradient(circle, #ddd6fe 0%, transparent 70%);"></div>
-        <div class="absolute top-1/3 -right-32 w-80 h-80 rounded-full opacity-15"
-             style="background: radial-gradient(circle, #fbcfe8 0%, transparent 70%);"></div>
-        <div class="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full opacity-10"
-             style="background: radial-gradient(circle, #c4b5fd 0%, transparent 70%);"></div>
-      </div>
-
-      <!-- ── Hero Section: Falling Petals ───────────────────────────────── -->
-      <div class="relative min-h-[60vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+  <InactivityOverlay>
+        <Sidebar>
+      <div class="help-page min-h-screen relative overflow-x-hidden">
         
-        <!-- Falling Petals Animation Layer -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-          <svg v-for="n in 12" :key="n" 
-               class="falling-petal absolute opacity-60" 
-               :class="`petal-anim-${n}`"
-               viewBox="0 0 40 40" width="30">
-             <path d="M20 40C20 40 0 20 0 10C0 4.5 4.5 0 10 0C15 0 20 5 20 10C20 5 25 0 30 0C35.5 0 40 4.5 40 10C40 20 20 40 20 40Z" 
-                   fill="url(#petalGradient)" />
-          </svg>
-          <defs>
-            <linearGradient id="petalGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#e879f9" />
-              <stop offset="100%" stop-color="#c084fc" />
-            </linearGradient>
-          </defs>
+        <!-- ── Global Styles/Fonts ────────────────────────────────────────── -->
+        <component :is="'style'">
+          @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+        </component>
+
+        <!-- ── Background Atmosphere (Matching Vault.vue) ─────────────────── -->
+        <div class="fixed inset-0 pointer-events-none select-none" aria-hidden="true">
+          <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-20"
+              style="background: radial-gradient(circle, #ddd6fe 0%, transparent 70%);"></div>
+          <div class="absolute top-1/3 -right-32 w-80 h-80 rounded-full opacity-15"
+              style="background: radial-gradient(circle, #fbcfe8 0%, transparent 70%);"></div>
+          <div class="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full opacity-10"
+              style="background: radial-gradient(circle, #c4b5fd 0%, transparent 70%);"></div>
         </div>
 
-        <!-- Hero Content -->
-        <div class="relative z-10 animate-fade-in">
-          <div class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-purple-200/50 mb-6 rotate-3 transform border border-purple-100">
-            <BookOpen class="w-8 h-8 text-purple-500" />
-          </div>
-          <h1 class="font-display text-5xl md:text-6xl text-gray-900 mb-4">
-            How to use your <span class="italic text-purple-600">Vault</span>
-          </h1>
-          <p class="font-body text-gray-500 max-w-lg mx-auto text-lg leading-relaxed">
-            Scroll down to watch the guide unfold.
-          </p>
+        <!-- ── Hero Section: Falling Petals ───────────────────────────────── -->
+        <div class="relative min-h-[60vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
           
-          <!-- Scroll Indicator -->
-          <div class="mt-12 animate-bounce opacity-50">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
-              <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+          <!-- Falling Petals Animation Layer -->
+          <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <svg v-for="n in 12" :key="n" 
+                class="falling-petal absolute opacity-60" 
+                :class="`petal-anim-${n}`"
+                viewBox="0 0 40 40" width="30">
+              <path d="M20 40C20 40 0 20 0 10C0 4.5 4.5 0 10 0C15 0 20 5 20 10C20 5 25 0 30 0C35.5 0 40 4.5 40 10C40 20 20 40 20 40Z" 
+                    fill="url(#petalGradient)" />
             </svg>
+            <defs>
+              <linearGradient id="petalGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#e879f9" />
+                <stop offset="100%" stop-color="#c084fc" />
+              </linearGradient>
+            </defs>
+          </div>
+
+          <!-- Hero Content -->
+          <div class="relative z-10 animate-fade-in">
+            <div class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-purple-200/50 mb-6 rotate-3 transform border border-purple-100">
+              <BookOpen class="w-8 h-8 text-purple-500" />
+            </div>
+            <h1 class="font-display text-5xl md:text-6xl text-gray-900 mb-4">
+              How to use your <span class="italic text-purple-600">Vault</span>
+            </h1>
+            <p class="font-body text-gray-500 max-w-lg mx-auto text-lg leading-relaxed">
+              Scroll down to watch the guide unfold.
+            </p>
+            
+            <!-- Scroll Indicator -->
+            <div class="mt-12 animate-bounce opacity-50">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ── Help Sections ──────────────────────────────────────────────── -->
-      <div class="relative z-10 max-w-6xl mx-auto px-6 pb-32">
-        <div class="space-y-24 md:space-y-32">
-          
-          <div v-for="(item, index) in helpSections" 
-               :key="item.id" 
-               :ref="setRef"
-               class="bloom-section grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+        <!-- ── Help Sections ──────────────────────────────────────────────── -->
+        <div class="relative z-10 max-w-6xl mx-auto px-6 pb-32">
+          <div class="space-y-24 md:space-y-32">
             
-            <!-- 
-              Logic: 
-              If index is EVEN (0, 2): Text on Left, Image on Right.
-              If index is ODD (1, 3): Image on Left, Text on Right.
+            <div v-for="(item, index) in helpSections" 
+                :key="item.id" 
+                :ref="setRef"
+                class="bloom-section grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
               
-              We use 'order-last' on mobile to ensure image is always second, 
-              but on desktop we swap using md:order classes.
-            -->
+              <!-- 
+                Logic: 
+                If index is EVEN (0, 2): Text on Left, Image on Right.
+                If index is ODD (1, 3): Image on Left, Text on Right.
+                
+                We use 'order-last' on mobile to ensure image is always second, 
+                but on desktop we swap using md:order classes.
+              -->
 
-            <!-- TEXT BOX SIDE -->
-            <div :class="[
-              'bloom-text-wrapper relative',
-              index % 2 !== 0 ? 'md:order-2' : 'md:order-1'
-            ]">
-              <!-- The Decorative Petal Behind (Part of the emerge effect) -->
-              <svg class="absolute -left-12 -top-12 w-48 h-48 opacity-10 text-petal rotate-12" 
-                   viewBox="0 0 100 100" 
-                   :style="{ fill: item.petalColor }">
-                <path d="M50 100C50 100 0 50 0 25C0 11.2 11.2 0 25 0C37.5 0 50 12.5 50 25C50 12.5 62.5 0 75 0C88.8 0 100 11.2 100 25C100 50 50 100 50 100Z" />
-              </svg>
+              <!-- TEXT BOX SIDE -->
+              <div :class="[
+                'bloom-text-wrapper relative',
+                index % 2 !== 0 ? 'md:order-2' : 'md:order-1'
+              ]">
+                <!-- The Decorative Petal Behind (Part of the emerge effect) -->
+                <svg class="absolute -left-12 -top-12 w-48 h-48 opacity-10 text-petal rotate-12" 
+                    viewBox="0 0 100 100" 
+                    :style="{ fill: item.petalColor }">
+                  <path d="M50 100C50 100 0 50 0 25C0 11.2 11.2 0 25 0C37.5 0 50 12.5 50 25C50 12.5 62.5 0 75 0C88.8 0 100 11.2 100 25C100 50 50 100 50 100Z" />
+                </svg>
 
-              <!-- The Card -->
-              <div class="bloom-card relative bg-white/80 backdrop-blur-sm border border-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg transition-shadow duration-500">
-                <div class="flex items-center gap-4 mb-4">
-                  <div :class="`w-10 h-10 rounded-full ${item.bgColor} flex items-center justify-center`">
-                    <component :is="item.icon" :class="`w-5 h-5 ${item.color}`" />
+                <!-- The Card -->
+                <div class="bloom-card relative bg-white/80 backdrop-blur-sm border border-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg transition-shadow duration-500">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div :class="`w-10 h-10 rounded-full ${item.bgColor} flex items-center justify-center`">
+                      <component :is="item.icon" :class="`w-5 h-5 ${item.color}`" />
+                    </div>
+                    <h2 class="font-display text-3xl text-gray-800">{{ item.title }}</h2>
                   </div>
-                  <h2 class="font-display text-3xl text-gray-800">{{ item.title }}</h2>
-                </div>
-                <p class="font-body text-gray-600 leading-relaxed text-lg">
-                  {{ item.description }}
-                </p>
-                <div class="mt-6 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase" :class="item.color">
-                  <span>Learn more</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
+                  <p class="font-body text-gray-600 leading-relaxed text-lg">
+                    {{ item.description }}
+                  </p>
+                  <div class="mt-6 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase" :class="item.color">
+                    <span>Learn more</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- IMAGE/SCREENSHOT SIDE -->
-            <div :class="[
-              'bloom-image-wrapper relative perspective-1000',
-              index % 2 !== 0 ? 'md:order-1' : 'md:order-2'
-            ]">
-               <!-- Fake Browser Window / Screenshot Container -->
-               <div class="screenshot-card bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-1000">
-                 <!-- Browser Toolbar -->
-                 <div class="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-2">
-                   <div class="w-3 h-3 rounded-full bg-red-300"></div>
-                   <div class="w-3 h-3 rounded-full bg-amber-300"></div>
-                   <div class="w-3 h-3 rounded-full bg-green-300"></div>
-                   <div class="ml-4 w-full h-4 bg-white border border-gray-200 rounded-full opacity-50"></div>
-                 </div>
-                 <!-- Image Placeholder (Replace bg-color with <img> tag in real app) -->
-                 <div class="h-64 w-full bg-gray-100 relative group overflow-hidden flex items-center justify-center">
-                    <!-- Placeholder Visuals -->
-                    <div class="absolute inset-0 opacity-10" 
-                         :style="`background: linear-gradient(135deg, ${item.petalColor}, white);`"></div>
-                    
-                    <component :is="item.icon" 
-                              class="w-16 h-16 opacity-20 transform group-hover:scale-110 transition-transform duration-700" 
-                              :style="`color: ${item.petalColor}`"/>
-                    
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/5">
-                      <span class="bg-white px-4 py-2 rounded-full shadow-sm text-xs uppercase tracking-widest font-bold text-gray-500">
-                        View Screenshot
-                      </span>
-                    </div>
-                 </div>
-               </div>
-               
-               <!-- Decorative elements behind image -->
-               <div class="absolute -bottom-4 -right-4 w-full h-full border-2 border-dashed border-purple-200 rounded-xl -z-10"></div>
-            </div>
+              <!-- IMAGE/SCREENSHOT SIDE -->
+              <div :class="[
+                'bloom-image-wrapper relative perspective-1000',
+                index % 2 !== 0 ? 'md:order-1' : 'md:order-2'
+              ]">
+                <!-- Fake Browser Window / Screenshot Container -->
+                <div class="screenshot-card bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-1000">
+                  <!-- Browser Toolbar -->
+                  <div class="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-300"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-300"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-300"></div>
+                    <div class="ml-4 w-full h-4 bg-white border border-gray-200 rounded-full opacity-50"></div>
+                  </div>
+                  <!-- Image Placeholder (Replace bg-color with <img> tag in real app) -->
+                  <div class="h-64 w-full bg-gray-100 relative group overflow-hidden flex items-center justify-center">
+                      <!-- Placeholder Visuals -->
+                      <div class="absolute inset-0 opacity-10" 
+                          :style="`background: linear-gradient(135deg, ${item.petalColor}, white);`"></div>
+                      
+                      <component :is="item.icon" 
+                                class="w-16 h-16 opacity-20 transform group-hover:scale-110 transition-transform duration-700" 
+                                :style="`color: ${item.petalColor}`"/>
+                      
+                      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/5">
+                        <span class="bg-white px-4 py-2 rounded-full shadow-sm text-xs uppercase tracking-widest font-bold text-gray-500">
+                          View Screenshot
+                        </span>
+                      </div>
+                  </div>
+                </div>
+                
+                <!-- Decorative elements behind image -->
+                <div class="absolute -bottom-4 -right-4 w-full h-full border-2 border-dashed border-purple-200 rounded-xl -z-10"></div>
+              </div>
 
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Sidebar>
+    </Sidebar>
+  </InactivityOverlay>
 </template>
 
 <style scoped>

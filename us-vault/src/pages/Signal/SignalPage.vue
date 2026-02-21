@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
+import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const MAX_SIGNALS = 25
@@ -61,176 +62,178 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Sidebar>
-    <div class="signal-page">
-      <component :is="'style'">
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
-      </component>
+  <InactivityOverlay>
+        <Sidebar>
+      <div class="signal-page">
+        <component :is="'style'">
+          @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+        </component>
 
-      <!-- ── Background ─────────────────────────────────────────── -->
-      <div class="signal-bg" aria-hidden="true">
-        <!-- Slow drifting gradient orbs -->
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-        <!-- Subtle grid -->
-        <div class="signal-grid"></div>
-      </div>
-
-      <!-- ── Content ────────────────────────────────────────────── -->
-      <div class="signal-content">
-
-        <!-- Title -->
-        <div class="signal-header">
-          <h1 class="signal-title">Send a thought</h1>
-          <p class="signal-sub">Let them know you're thinking of them.</p>
+        <!-- ── Background ─────────────────────────────────────────── -->
+        <div class="signal-bg" aria-hidden="true">
+          <!-- Slow drifting gradient orbs -->
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+          <div class="orb orb-3"></div>
+          <!-- Subtle grid -->
+          <div class="signal-grid"></div>
         </div>
 
-        <!-- ── The Scene ─────────────────────────────────────────── -->
-        <div class="scene-wrapper" @click="sendSignal" :class="{ 'scene--active': isAnimating, 'scene--disabled': !canSend }">
+        <!-- ── Content ────────────────────────────────────────────── -->
+        <div class="signal-content">
 
-          <!-- Ripple rings (emit on click) -->
-          <div class="ripple-ring ripple-1" :class="{ 'ripple--go': isAnimating }"></div>
-          <div class="ripple-ring ripple-2" :class="{ 'ripple--go': isAnimating }"></div>
-          <div class="ripple-ring ripple-3" :class="{ 'ripple--go': isAnimating }"></div>
+          <!-- Title -->
+          <div class="signal-header">
+            <h1 class="signal-title">Send a thought</h1>
+            <p class="signal-sub">Let them know you're thinking of them.</p>
+          </div>
 
-          <!-- Person SVG scene -->
-          <svg class="person-svg" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- ── The Scene ─────────────────────────────────────────── -->
+          <div class="scene-wrapper" @click="sendSignal" :class="{ 'scene--active': isAnimating, 'scene--disabled': !canSend }">
 
-            <!-- Floor line -->
-            <line x1="20" y1="230" x2="200" y2="230" stroke="#e2d9f3" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Ripple rings (emit on click) -->
+            <div class="ripple-ring ripple-1" :class="{ 'ripple--go': isAnimating }"></div>
+            <div class="ripple-ring ripple-2" :class="{ 'ripple--go': isAnimating }"></div>
+            <div class="ripple-ring ripple-3" :class="{ 'ripple--go': isAnimating }"></div>
 
-            <!-- ── Person body ── -->
-            <!-- Legs / sitting cross-legged -->
-            <path d="M80 200 Q70 218 55 222 Q68 224 90 215 Z" fill="#6d28d9" opacity="0.7"/>
-            <path d="M140 200 Q150 218 165 222 Q152 224 130 215 Z" fill="#6d28d9" opacity="0.7"/>
-            <!-- Body -->
-            <rect x="82" y="155" width="56" height="52" rx="18" fill="#7c3aed"/>
-            <!-- Arms resting -->
-            <path d="M82 178 Q62 185 58 200 Q68 196 80 192 Z" fill="#6d28d9" opacity="0.8"/>
-            <path d="M138 178 Q158 185 162 200 Q152 196 140 192 Z" fill="#6d28d9" opacity="0.8"/>
-            <!-- Hands -->
-            <ellipse cx="58" cy="202" rx="8" ry="6" fill="#a78bfa"/>
-            <ellipse cx="162" cy="202" rx="8" ry="6" fill="#a78bfa"/>
+            <!-- Person SVG scene -->
+            <svg class="person-svg" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg">
 
-            <!-- Neck -->
-            <rect x="102" y="142" width="16" height="16" rx="6" fill="#a78bfa"/>
+              <!-- Floor line -->
+              <line x1="20" y1="230" x2="200" y2="230" stroke="#e2d9f3" stroke-width="1.5" stroke-linecap="round"/>
 
-            <!-- Head -->
-            <ellipse cx="110" cy="126" rx="26" ry="24" fill="#a78bfa"/>
+              <!-- ── Person body ── -->
+              <!-- Legs / sitting cross-legged -->
+              <path d="M80 200 Q70 218 55 222 Q68 224 90 215 Z" fill="#6d28d9" opacity="0.7"/>
+              <path d="M140 200 Q150 218 165 222 Q152 224 130 215 Z" fill="#6d28d9" opacity="0.7"/>
+              <!-- Body -->
+              <rect x="82" y="155" width="56" height="52" rx="18" fill="#7c3aed"/>
+              <!-- Arms resting -->
+              <path d="M82 178 Q62 185 58 200 Q68 196 80 192 Z" fill="#6d28d9" opacity="0.8"/>
+              <path d="M138 178 Q158 185 162 200 Q152 196 140 192 Z" fill="#6d28d9" opacity="0.8"/>
+              <!-- Hands -->
+              <ellipse cx="58" cy="202" rx="8" ry="6" fill="#a78bfa"/>
+              <ellipse cx="162" cy="202" rx="8" ry="6" fill="#a78bfa"/>
 
-            <!-- ── Eyes (asleep → awake) ── -->
-            <!-- Sleeping eyes (closed arcs) -->
-            <g class="eyes-asleep" :class="{ 'eyes--hide': isAnimating }">
-              <path d="M100 124 Q104 120 108 124" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" fill="none"/>
-              <path d="M112 124 Q116 120 120 124" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" fill="none"/>
-            </g>
-            <!-- Awake eyes (open circles) -->
-            <g class="eyes-awake" :class="{ 'eyes--show': isAnimating }">
-              <circle cx="104" cy="123" r="4" fill="#4c1d95"/>
-              <circle cx="116" cy="123" r="4" fill="#4c1d95"/>
-              <circle cx="105.5" cy="121.5" r="1.5" fill="white"/>
-              <circle cx="117.5" cy="121.5" r="1.5" fill="white"/>
-            </g>
+              <!-- Neck -->
+              <rect x="102" y="142" width="16" height="16" rx="6" fill="#a78bfa"/>
 
-            <!-- Eyebrows (surprised when active) -->
-            <g class="brows" :class="{ 'brows--up': isAnimating }">
-              <path d="M99 116 Q104 114 109 116" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-              <path d="M111 116 Q116 114 121 116" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-            </g>
+              <!-- Head -->
+              <ellipse cx="110" cy="126" rx="26" ry="24" fill="#a78bfa"/>
 
-            <!-- Mouth (smile) -->
-            <path class="mouth" :class="{ 'mouth--smile': isAnimating }"
-                  d="M104 133 Q110 135 116 133" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-
-            <!-- Hair little tufts -->
-            <path d="M88 112 Q86 104 92 106" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <path d="M110 102 Q110 94 115 97" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <path d="M130 110 Q134 103 130 106" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-
-            <!-- ── Z z z (asleep, disappears on click) ── -->
-            <g class="zs" :class="{ 'zs--hide': isAnimating }">
-              <text x="138" y="108" font-size="11" fill="#c4b5fd" opacity="0.8" font-family="DM Sans">z</text>
-              <text x="148" y="96"  font-size="9"  fill="#c4b5fd" opacity="0.55" font-family="DM Sans">z</text>
-              <text x="156" y="86"  font-size="7"  fill="#c4b5fd" opacity="0.35" font-family="DM Sans">z</text>
-            </g>
-
-            <!-- ── Thought bubble chain ── -->
-            <g class="thought-group" :class="{ 'thought--show': isAnimating }">
-              <!-- Small circles leading up -->
-              <circle cx="132" cy="108" r="3.5" fill="white" opacity="0.9"/>
-              <circle cx="141" cy="96"  r="5"   fill="white" opacity="0.95"/>
-              <circle cx="152" cy="82"  r="7"   fill="white"/>
-
-              <!-- Main bubble -->
-              <rect x="152" y="40" width="56" height="42" rx="14" fill="white"/>
-              <!-- Bubble tail -->
-              <polygon points="165,80 172,82 168,86" fill="white"/>
-
-              <!-- Heart inside bubble -->
-              <g class="bubble-heart">
-                <path d="M180 57 C180 54 177 51 174 51 C171 51 168 54 168 57 C168 62 174 68 180 72 C186 68 192 62 192 57 C192 54 189 51 186 51 C183 51 180 54 180 57Z" fill="#f43f5e"/>
+              <!-- ── Eyes (asleep → awake) ── -->
+              <!-- Sleeping eyes (closed arcs) -->
+              <g class="eyes-asleep" :class="{ 'eyes--hide': isAnimating }">
+                <path d="M100 124 Q104 120 108 124" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M112 124 Q116 120 120 124" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </g>
+              <!-- Awake eyes (open circles) -->
+              <g class="eyes-awake" :class="{ 'eyes--show': isAnimating }">
+                <circle cx="104" cy="123" r="4" fill="#4c1d95"/>
+                <circle cx="116" cy="123" r="4" fill="#4c1d95"/>
+                <circle cx="105.5" cy="121.5" r="1.5" fill="white"/>
+                <circle cx="117.5" cy="121.5" r="1.5" fill="white"/>
               </g>
 
-              <!-- "thinking of you" text -->
-              <text x="180" y="78" font-size="5.5" fill="#7c3aed" text-anchor="middle" font-family="DM Sans" font-weight="500">thinking of you</text>
-            </g>
+              <!-- Eyebrows (surprised when active) -->
+              <g class="brows" :class="{ 'brows--up': isAnimating }">
+                <path d="M99 116 Q104 114 109 116" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                <path d="M111 116 Q116 114 121 116" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+              </g>
 
-          </svg>
+              <!-- Mouth (smile) -->
+              <path class="mouth" :class="{ 'mouth--smile': isAnimating }"
+                    d="M104 133 Q110 135 116 133" stroke="#5b21b6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
 
-          <!-- Cursor hint when idle -->
-          <div class="click-hint" :class="{ 'hint--hide': isAnimating || isCoolingDown || signalsSent > 0 }">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
-            <span>Click to send</span>
-          </div>
-        </div>
+              <!-- Hair little tufts -->
+              <path d="M88 112 Q86 104 92 106" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M110 102 Q110 94 115 97" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M130 110 Q134 103 130 106" stroke="#5b21b6" stroke-width="2.5" stroke-linecap="round" fill="none"/>
 
-        <!-- ── Count ring ──────────────────────────────────────── -->
-        <div class="count-area">
-          <svg class="count-ring" viewBox="0 0 80 80" width="80" height="80">
-            <!-- Track -->
-            <circle cx="40" cy="40" r="32" fill="none" stroke="#ede9fe" stroke-width="4"/>
-            <!-- Progress arc -->
-            <circle cx="40" cy="40" r="32" fill="none"
-                    :stroke="remaining < 5 ? '#f43f5e' : '#7c3aed'"
-                    stroke-width="4"
-                    stroke-linecap="round"
-                    :stroke-dasharray="`${(signalsSent / MAX_SIGNALS) * 201} 201`"
-                    stroke-dashoffset="0"
-                    transform="rotate(-90 40 40)"
-                    style="transition: stroke-dasharray 0.5s ease;"/>
-            <text x="40" y="37" text-anchor="middle" font-size="14" font-weight="600" fill="#4c1d95" font-family="DM Sans">{{ remaining }}</text>
-            <text x="40" y="50" text-anchor="middle" font-size="6" fill="#a78bfa" font-family="DM Sans">left today</text>
-          </svg>
-        </div>
+              <!-- ── Z z z (asleep, disappears on click) ── -->
+              <g class="zs" :class="{ 'zs--hide': isAnimating }">
+                <text x="138" y="108" font-size="11" fill="#c4b5fd" opacity="0.8" font-family="DM Sans">z</text>
+                <text x="148" y="96"  font-size="9"  fill="#c4b5fd" opacity="0.55" font-family="DM Sans">z</text>
+                <text x="156" y="86"  font-size="7"  fill="#c4b5fd" opacity="0.35" font-family="DM Sans">z</text>
+              </g>
 
-        <!-- ── Cooldown timer ─────────────────────────────────── -->
-        <Transition name="timer-fade">
-          <div v-if="isCoolingDown" class="cooldown-strip">
-            <div class="cooldown-bar-track">
-              <div class="cooldown-bar-fill" :style="`width: ${(cooldownLeft / COOLDOWN_S) * 100}%`"></div>
+              <!-- ── Thought bubble chain ── -->
+              <g class="thought-group" :class="{ 'thought--show': isAnimating }">
+                <!-- Small circles leading up -->
+                <circle cx="132" cy="108" r="3.5" fill="white" opacity="0.9"/>
+                <circle cx="141" cy="96"  r="5"   fill="white" opacity="0.95"/>
+                <circle cx="152" cy="82"  r="7"   fill="white"/>
+
+                <!-- Main bubble -->
+                <rect x="152" y="40" width="56" height="42" rx="14" fill="white"/>
+                <!-- Bubble tail -->
+                <polygon points="165,80 172,82 168,86" fill="white"/>
+
+                <!-- Heart inside bubble -->
+                <g class="bubble-heart">
+                  <path d="M180 57 C180 54 177 51 174 51 C171 51 168 54 168 57 C168 62 174 68 180 72 C186 68 192 62 192 57 C192 54 189 51 186 51 C183 51 180 54 180 57Z" fill="#f43f5e"/>
+                </g>
+
+                <!-- "thinking of you" text -->
+                <text x="180" y="78" font-size="5.5" fill="#7c3aed" text-anchor="middle" font-family="DM Sans" font-weight="500">thinking of you</text>
+              </g>
+
+            </svg>
+
+            <!-- Cursor hint when idle -->
+            <div class="click-hint" :class="{ 'hint--hide': isAnimating || isCoolingDown || signalsSent > 0 }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+              <span>Click to send</span>
             </div>
-            <p class="cooldown-label">Wait {{ cooldownLeft }}s before sending another</p>
           </div>
-        </Transition>
 
-        <!-- Maxed out state -->
-        <Transition name="timer-fade">
-          <div v-if="signalsSent >= MAX_SIGNALS" class="maxed-notice">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            You've sent all 25 thoughts for today. See you tomorrow ✦
+          <!-- ── Count ring ──────────────────────────────────────── -->
+          <div class="count-area">
+            <svg class="count-ring" viewBox="0 0 80 80" width="80" height="80">
+              <!-- Track -->
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#ede9fe" stroke-width="4"/>
+              <!-- Progress arc -->
+              <circle cx="40" cy="40" r="32" fill="none"
+                      :stroke="remaining < 5 ? '#f43f5e' : '#7c3aed'"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      :stroke-dasharray="`${(signalsSent / MAX_SIGNALS) * 201} 201`"
+                      stroke-dashoffset="0"
+                      transform="rotate(-90 40 40)"
+                      style="transition: stroke-dasharray 0.5s ease;"/>
+              <text x="40" y="37" text-anchor="middle" font-size="14" font-weight="600" fill="#4c1d95" font-family="DM Sans">{{ remaining }}</text>
+              <text x="40" y="50" text-anchor="middle" font-size="6" fill="#a78bfa" font-family="DM Sans">left today</text>
+            </svg>
           </div>
-        </Transition>
 
-        <!-- ── Disclaimer ─────────────────────────────────────── -->
-        <p class="signal-disclaimer">
-          You can only send a max of 25 thoughts a day to your partner —<br/>
-          we don't want to overwhelm them with how much you think of them 24/7.
-        </p>
+          <!-- ── Cooldown timer ─────────────────────────────────── -->
+          <Transition name="timer-fade">
+            <div v-if="isCoolingDown" class="cooldown-strip">
+              <div class="cooldown-bar-track">
+                <div class="cooldown-bar-fill" :style="`width: ${(cooldownLeft / COOLDOWN_S) * 100}%`"></div>
+              </div>
+              <p class="cooldown-label">Wait {{ cooldownLeft }}s before sending another</p>
+            </div>
+          </Transition>
 
+          <!-- Maxed out state -->
+          <Transition name="timer-fade">
+            <div v-if="signalsSent >= MAX_SIGNALS" class="maxed-notice">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              You've sent all 25 thoughts for today. See you tomorrow ✦
+            </div>
+          </Transition>
+
+          <!-- ── Disclaimer ─────────────────────────────────────── -->
+          <p class="signal-disclaimer">
+            You can only send a max of 25 thoughts a day to your partner —<br/>
+            we don't want to overwhelm them with how much you think of them 24/7.
+          </p>
+
+        </div>
       </div>
-    </div>
-  </Sidebar>
+    </Sidebar>
+  </InactivityOverlay>
 </template>
 
 <style scoped>
