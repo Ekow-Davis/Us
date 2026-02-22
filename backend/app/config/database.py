@@ -4,7 +4,7 @@ from app.config.config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,  # set False later
+    echo=False,  # set False later for production, True for development
 )
 
 SessionLocal = sessionmaker(
