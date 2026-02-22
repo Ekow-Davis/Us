@@ -71,7 +71,7 @@ def get_active_seeds(
                     db=db,
                     user_id=seed.created_by,
                     type="seed_ready",
-                    title="A Seed is Ready to Bloom 🌸",
+                    title="A Seed is Ready to Bloom",
                     message="One of your seeds is ready to bloom.",
                     reference_type="seed",
                     reference_id=seed.id
