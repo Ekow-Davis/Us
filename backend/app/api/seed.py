@@ -1,4 +1,4 @@
-import os
+from app.config.supabase import supabase
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -459,20 +459,20 @@ async def upload_seed_media(
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large")
 
-    folder = os.path.join(SEED_UPLOAD_DIR, str(seed_id))
-    os.makedirs(folder, exist_ok=True)
-
     extension = file.filename.split(".")[-1]
-    filename = f"{uuid4()}.{extension}"
-    path = os.path.join(folder, filename)
+    file_path = f"memories/{seed_id}/{uuid4()}.{extension}"
 
-    with open(path, "wb") as f:
-        f.write(contents)
+    supabase.storage.from_("vault-media").upload(
+        file_path,
+        contents,
+        {"content-type": file.content_type}
+    )
 
     media = SeedMedia(
         seed_id=seed.id,
-        file_url=f"/uploads/seeds/{seed_id}/{filename}",
-        file_type=file.content_type
+        file_url=supabase.storage.from_("vault-media").get_public_url(file_path),
+        file_type=file.content_type,
+        file_path=file_path
     )
 
     db.add(media)
@@ -511,9 +511,8 @@ def delete_seed_media(
     if datetime.now(timezone.utc) > seed.created_at + timedelta(hours=24):
         raise HTTPException(status_code=403, detail="Delete window expired")
 
-    file_path = media.file_url.lstrip("/")
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    file_path = media.file_path
+    supabase.storage.from_("vault-media").remove([file_path])
 
     db.delete(media)
     db.commit()

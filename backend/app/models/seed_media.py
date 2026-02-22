@@ -23,6 +23,13 @@ class SeedMedia(Base):
     )
 
     file_url: Mapped[str] = mapped_column(String(500), nullable=False)
+
+    # NEW
+    file_path: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False
+    )
+
     file_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
     uploaded_at: Mapped[datetime] = mapped_column(
