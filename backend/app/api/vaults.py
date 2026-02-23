@@ -33,32 +33,16 @@ def create_vault(
             detail="User already in a vault"
         )
 
-    # Check if user had previous membership in this vault
-    previous_membership = db.query(VaultMembership).filter(
-        VaultMembership.user_id == current_user.id,
-        VaultMembership.vault_id == vault.id
-    ).first()
-
-    if previous_membership:
-        # Reactivate instead of inserting new row
-        previous_membership.left_at = None
-    else:
-        membership = VaultMembership(
-            vault_id=vault.id,
-            user_id=current_user.id
-        )
-        db.add(membership)
-
-
+    # Generate unique invite code
     while True:
-      invite_code = secrets.token_hex(4)
-      exists = db.query(Vault).filter(
-          Vault.invite_code == invite_code
-      ).first()
-      if not exists:
-          break
+        invite_code = secrets.token_hex(4)
+        exists = db.query(Vault).filter(
+            Vault.invite_code == invite_code
+        ).first()
+        if not exists:
+            break
 
-
+    # Create vault
     vault = Vault(
         invite_code=invite_code,
         status="pending",
@@ -66,9 +50,9 @@ def create_vault(
     )
 
     db.add(vault)
-    db.commit()
-    db.refresh(vault)
+    db.flush()  # so vault.id exists before commit
 
+    # Add membership
     membership = VaultMembership(
         vault_id=vault.id,
         user_id=current_user.id

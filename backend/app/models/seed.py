@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, Index, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.config.database import Base
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import ForeignKey
 
 
 class Seed(Base):
@@ -29,6 +31,7 @@ class Seed(Base):
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
     bloom_at: Mapped[datetime] = mapped_column(
@@ -54,6 +57,12 @@ class Seed(Base):
     bloom_notified: Mapped[bool] = mapped_column(
         Boolean,
         default=False
+    )
+
+    memory_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("memories.id", ondelete="SET NULL"),
+        nullable=True
     )
 
     views = relationship(

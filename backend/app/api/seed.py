@@ -83,63 +83,6 @@ def get_active_seeds(
 
     return result
 
-# Get a specific seed by ID
-@router.get("/{seed_id}")
-def get_seed_details(
-    seed_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    vault_id = get_user_vault(db, current_user.id)
-
-    seed = db.query(Seed).filter(
-        Seed.id == seed_id,
-        Seed.vault_id == vault_id
-    ).first()
-
-    if not seed:
-        raise HTTPException(status_code=404, detail="Seed not found")
-
-    views = db.query(SeedView).filter(
-        SeedView.seed_id == seed.id
-    ).all()
-
-    viewed_user_ids = {v.user_id for v in views}
-
-    # Media visibility rule
-    if seed.created_by == current_user.id:
-        media_list = [
-            {
-                "id": m.id,
-                "file_url": m.file_url,
-                "file_type": m.file_type
-            }
-            for m in seed.media
-        ]
-    else:
-        if datetime.now(timezone.utc) >= seed.bloom_at:
-            media_list = [
-                {
-                    "id": m.id,
-                    "file_url": m.file_url,
-                    "file_type": m.file_type
-                }
-                for m in seed.media
-            ]
-        else:
-            media_list = []
-
-    return {
-        "id": seed.id,
-        "title": seed.title,
-        "content": seed.content,
-        "bloom_at": seed.bloom_at,
-        "created_at": seed.created_at,
-        "status": seed.status,
-        "view_count": len(viewed_user_ids),
-        "media": media_list,
-        "has_viewed": current_user.id in viewed_user_ids
-    }
 
 # Get all seeds for the user's vault (including archived)
 @router.get("/")
@@ -292,6 +235,65 @@ def get_seed_summary(
         "bloomed": bloomed
     }
 
+# Get a specific seed by ID
+@router.get("/{seed_id}")
+def get_seed_details(
+    seed_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vault_id = get_user_vault(db, current_user.id)
+
+    seed = db.query(Seed).filter(
+        Seed.id == seed_id,
+        Seed.vault_id == vault_id
+    ).first()
+
+    if not seed:
+        raise HTTPException(status_code=404, detail="Seed not found")
+
+    views = db.query(SeedView).filter(
+        SeedView.seed_id == seed.id
+    ).all()
+
+    viewed_user_ids = {v.user_id for v in views}
+
+    # Media visibility rule
+    if seed.created_by == current_user.id:
+        media_list = [
+            {
+                "id": m.id,
+                "file_url": m.file_url,
+                "file_type": m.file_type
+            }
+            for m in seed.media
+        ]
+    else:
+        if datetime.now(timezone.utc) >= seed.bloom_at:
+            media_list = [
+                {
+                    "id": m.id,
+                    "file_url": m.file_url,
+                    "file_type": m.file_type
+                }
+                for m in seed.media
+            ]
+        else:
+            media_list = []
+
+    return {
+        "id": seed.id,
+        "title": seed.title,
+        "content": seed.content,
+        "bloom_at": seed.bloom_at,
+        "created_at": seed.created_at,
+        "status": seed.status,
+        "view_count": len(viewed_user_ids),
+        "media": media_list,
+        "has_viewed": current_user.id in viewed_user_ids
+    }
+
+
 # POST ENDPOINTS
 
 # Only allow users in the vault to create seeds
@@ -403,6 +405,8 @@ def bloom_seed(
             is_seed=True
         )
 
+        seed.memory_id = memory.id
+
         db.add(memory)
         db.flush()
 
@@ -460,7 +464,7 @@ async def upload_seed_media(
         raise HTTPException(status_code=400, detail="File too large")
 
     extension = file.filename.split(".")[-1]
-    file_path = f"memories/{seed_id}/{uuid4()}.{extension}"
+    file_path = f"seeds/{seed_id}/{uuid4()}.{extension}"
 
     supabase.storage.from_("vault-media").upload(
         file_path,
