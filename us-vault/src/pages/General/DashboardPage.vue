@@ -12,7 +12,7 @@ onMounted(() => {
   // Simulate API call delay
   setTimeout(() => {
     // This would come from your API response
-    signalCount.value = 2
+    signalCount.value = 13
     console.log(`Checking signal count: ${signalCount.value}`)
     
     if (signalCount.value > 0) {

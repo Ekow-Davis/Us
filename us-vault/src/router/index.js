@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 // Import pages
 // Home Section Pages
@@ -38,6 +39,9 @@ import NotificationPage from '../pages/Settings/NotificationPage.vue'
 import SettingsPage from '../pages/Settings/SettingsPage.vue'
 import HelpPage from '../pages/Help/HelpPage.vue'
 
+// Not Found
+import NotFoundPage from '../pages/General/NotFoundPage.vue'
+
 
 const routes = [
   // Routes that don't require authentication
@@ -51,7 +55,9 @@ const routes = [
 
   // Protected routes (require authentication)
   { path: '/registration-transfer', name: 'registration-transfer', component: RegistrationTransferView, },
-  { path: '/dashboard', name: 'dashboard', component: DashboardView, },
+  { path: '/dashboard', name: 'dashboard', component: DashboardView, 
+    // meta: { requiresAuth: true } 
+  },
 
   { path: '/add-seed', name: 'add-seed', component: AddSeedPage, },
   { path: '/seeds', name: 'seeds', component: SeedPage, },
@@ -71,12 +77,30 @@ const routes = [
   { path: '/notifications', name: 'notifications', component: NotificationPage, },
   { path: '/help', name: 'help', component: HelpPage, },
 
-  { path: '/:pathMatch(.*)*',   redirect: '/' },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFoundPage,
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+
+  if (!auth.isInitialized) {
+    await auth.initialize()
+  }
+
+  if (to.meta.requiresAuth && !auth.accessToken) {
+    return next("/login")
+  }
+
+  next()
 })
 
 export default router

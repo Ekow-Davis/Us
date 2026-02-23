@@ -1,9 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-vue-next'
+import { useAuthStore } from '../../stores/auth'
+import { registerApi } from '../../api/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const isSignUpMode = ref(false)
 const showPassword = ref(false)
@@ -17,23 +20,63 @@ const registerForm = ref({
   password: ''
 })
 
+const isLoggingIn = ref(false)
+const isRegistering = ref(false)
+const errorMessage = ref<string | null>(null)
+
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-// Fake login handler (no API)
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!loginEmail.value || !loginPassword.value) return
-  router.push('/dashboard')
+
+  try {
+    errorMessage.value = null
+    isLoggingIn.value = true
+
+    await auth.login({
+      email: loginEmail.value,
+      password: loginPassword.value
+    })
+
+    router.push('/dashboard')
+
+  } catch (err: any) {
+    errorMessage.value = err?.response?.data?.detail || "Login failed"
+  } finally {
+    isLoggingIn.value = false
+  }
 }
 
-// Fake register handler (no API)
-const handleRegister = () => {
-  if (!registerForm.value.email ||
-      !registerForm.value.password ||
-      !registerForm.value.display_name) return
+const handleRegister = async () => {
+  const { email, password, display_name } = registerForm.value
+  if (!email || !password || !display_name) return
 
-  router.push('/registration-transfer')
+  try {
+    errorMessage.value = null
+    isRegistering.value = true
+
+    // Register
+    await registerApi({
+      email,
+      password,
+      display_name
+    })
+
+    // Auto-login after successful registration
+    await auth.login({
+      email,
+      password
+    })
+
+    router.push('/registration-transfer')
+
+  } catch (err: any) {
+    errorMessage.value = err?.response?.data?.detail || "Registration failed"
+  } finally {
+    isRegistering.value = false
+  }
 }
 </script>
 
@@ -45,6 +88,9 @@ const handleRegister = () => {
         <!-- SIGN IN -->
         <form @submit.prevent="handleLogin" class="sign-in-form">
           <h2 class="title">Login</h2>
+          <p v-if="errorMessage" style="color:#ff4d4f;font-size:14px;margin-bottom:10px;">
+            {{ errorMessage }}
+          </p>
 
           <div class="input-field">
             <Mail class="lucide-icon" />
@@ -69,8 +115,9 @@ const handleRegister = () => {
             </span>
           </div>
 
-          <button class="btn-pink" type="submit">
-            Login
+          <button class="btn-pink" type="submit" :disabled="isLoggingIn">
+            <span v-if="isLoggingIn">Loading...</span>
+            <span v-else>Login</span>
           </button>
 
           <p>
@@ -115,8 +162,9 @@ const handleRegister = () => {
             </span>
           </div>
 
-          <button class="btn" type="submit">
-            Register
+          <button class="btn" type="submit" :disabled="isRegistering">
+            <span v-if="isRegistering">Creating...</span>
+            <span v-else>Register</span>
           </button>
         </form>
 
@@ -134,7 +182,7 @@ const handleRegister = () => {
             Sign Up
           </button>
         </div>
-        <img src="/public/images/undraw_spread-love_0ekp.svg" class="image" />
+        <img src="/images/undraw_spread-love_0ekp.svg" class="image" />
       </div>
 
       <!-- Register PANEL -->
@@ -146,7 +194,7 @@ const handleRegister = () => {
             Sign In
           </button>
         </div>
-        <img src="/public/images/undraw_intense-feeling_4i8u.svg" class="image" />
+        <img src="/images/undraw_intense-feeling_4i8u.svg" class="image" />
       </div>
     </div>
   </div>
