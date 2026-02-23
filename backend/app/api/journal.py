@@ -55,6 +55,8 @@ def create_journal(
     db.commit()
     db.refresh(journal)
 
+    partner = None
+
     if journal.visibility == "shared" and journal.vault_id:
         partner = db.query(VaultMembership).filter(
             VaultMembership.vault_id == journal.vault_id,
@@ -72,6 +74,7 @@ def create_journal(
             reference_type="journal",
             reference_id=journal.id
         )
+
 
     db.commit()
 
