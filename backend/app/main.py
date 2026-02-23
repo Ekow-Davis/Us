@@ -41,9 +41,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-
 @app.get("/")
 def root():
     return {"message": "Vault API running"}
