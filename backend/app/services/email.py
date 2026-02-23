@@ -1,7 +1,18 @@
 import requests
 from app.config.config import settings
 
-html= f"""
+def send_otp_email(to_email: str, otp: str):
+    response = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {settings.RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "from": settings.EMAIL_FROM,
+            "to": to_email,
+            "subject": "Your Password Reset OTP",
+            "html": f"""
         <!DOCTYPE html>
         <html>
         <head>
@@ -59,20 +70,7 @@ html= f"""
             </div>
         </body>
         </html>
-        """
-
-def send_otp_email(to_email: str, otp: str):
-    response = requests.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {settings.RESEND_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "from": settings.EMAIL_FROM,
-            "to": to_email,
-            "subject": "Your Password Reset OTP",
-            "html":html,
+        """,
         },
     )
 
