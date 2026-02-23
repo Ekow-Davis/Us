@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_SERVICE_KEY: str
 
+    RESEND_API_KEY: str
+    EMAIL_FROM: str
+
     class Config:
         env_file = ".env"
 

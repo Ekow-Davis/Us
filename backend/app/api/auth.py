@@ -1,4 +1,5 @@
 import random
+import hashlib
 from urllib import response
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -6,15 +7,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
+from app.models.user import User
 from app.models.refresh_token import RefreshToken
+from app.services.email import send_otp_email
+from app.models.password_reset import PasswordResetToken
 
 from app.api.deps import get_current_user
+
 from app.config.database import get_db
 from app.config.security import hash_password, verify_password, create_access_token, REFRESH_TOKEN_EXPIRE_DAYS
-from app.models.user import User
+
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
-from app.models.password_reset import PasswordResetToken
+
 from backend.app.models import refresh_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -156,18 +161,26 @@ def forgot_password(
     if not user:
         return {"message": "If email exists, OTP sent."}
 
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id
+    ).delete()
+
+    db.commit()
+
     otp = str(random.randint(100000, 999999))
+
+    otp_hash = hashlib.sha256(otp.encode()).hexdigest()
 
     reset = PasswordResetToken(
         user_id=user.id,
-        otp=otp,
+        otp_hash=otp_hash,
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
 
     db.add(reset)
     db.commit()
 
-    # send email here later
+    send_otp_email(user.email, otp)
 
     return {"message": "If email exists, OTP sent."}
 
@@ -184,7 +197,7 @@ def reset_password(
 
     reset = db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
-        PasswordResetToken.otp == data.otp
+        PasswordResetToken.otp_hash == hashlib.sha256(data.otp.encode()).hexdigest()
     ).first()
 
     if not reset:

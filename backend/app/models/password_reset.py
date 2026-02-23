@@ -21,7 +21,7 @@ class PasswordResetToken(Base):
         nullable=False
     )
 
-    otp: Mapped[str] = mapped_column(String(6), nullable=False)
+    otp_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
