@@ -1,13 +1,13 @@
 import random
 import hashlib
-from urllib import response
+
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
-from app.main import limiter
+from app.config.rate_limit import limiter
 from slowapi.util import get_remote_address
 from fastapi import Request
 
@@ -19,12 +19,11 @@ from app.models.password_reset import PasswordResetToken
 from app.api.deps import get_current_user
 
 from app.config.database import get_db
-from app.config.security import hash_password, verify_password, create_access_token, REFRESH_TOKEN_EXPIRE_DAYS
+from app.config.security import hash_password, verify_password, create_access_token
+from app.config.config import settings
 
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
-
-from backend.app.models import refresh_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -77,7 +76,7 @@ def login(
 
     refresh_token = RefreshToken(
         user_id=user.id,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     )
 
     db.add(refresh_token)
@@ -90,7 +89,7 @@ def login(
         httponly=True,
         secure=True,  # set False locally if needed
         samesite="lax",
-        max_age=60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS
+        max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS
     )
 
     return {"access_token": access_token}
