@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from app.api.auth import router as auth_router
 from app.api.vaults import router as vault_router
 from app.api.memories import router as memory_router
@@ -11,7 +12,24 @@ from app.api.notifications import router as notifications_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
+from fastapi import Request
+
 app = FastAPI(title="Shared Memory Vault API")
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    lambda request, exc: JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests"}
+    ),
+)
 
 app.add_middleware(
     CORSMiddleware,

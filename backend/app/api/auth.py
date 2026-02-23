@@ -7,6 +7,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
+from app.main import limiter
+from slowapi.util import get_remote_address
+from fastapi import Request
+
 from app.models.user import User
 from app.models.refresh_token import RefreshToken
 from app.services.email import send_otp_email
@@ -24,18 +28,14 @@ from backend.app.models import refresh_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=True,        # True in production
-    samesite="lax",
-    max_age=60*60*24*7
-)
-
 
 @router.post("/register", response_model=UserResponse)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def register(
+    request: Request, 
+    user_data: UserCreate, db: 
+    Session = Depends(get_db)
+    ):
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
@@ -59,10 +59,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
+@limiter.limit("5/minute")
 def login(
+    request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
-    response: Response = None
 ):
     user = db.query(User).filter(
         User.email == form_data.username
@@ -86,8 +88,9 @@ def login(
         key="refresh_token",
         value=str(refresh_token.id),
         httponly=True,
-        secure=True,
-        samesite="lax"
+        secure=True,  # set False locally if needed
+        samesite="lax",
+        max_age=60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS
     )
 
     return {"access_token": access_token}
@@ -151,7 +154,9 @@ def change_password(
 
 # endpoint to handle forgot password - generates OTP and stores in DB, then would send email with OTP (email sending not implemented yet)
 @router.post("/forgot-password")
+@limiter.limit("5/minute")
 def forgot_password(
+    request: Request,
     data: ForgotPasswordRequest,
     db: Session = Depends(get_db)
 ):
@@ -186,7 +191,9 @@ def forgot_password(
 
 # endpoint to reset password using OTP
 @router.post("/reset-password")
+@limiter.limit("5/minute")
 def reset_password(
+    request: Request,
     data: ResetPasswordRequest,
     db: Session = Depends(get_db)
 ):
