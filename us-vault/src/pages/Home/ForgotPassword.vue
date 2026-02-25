@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, ArrowLeft } from 'lucide-vue-next'
+import { forgotPasswordApi, resetPasswordApi } from '../../api/auth'
 
 const router = useRouter()
 
@@ -31,29 +32,19 @@ const handleSendOTP = async () => {
   error.value = ''
 
   try {
-    // Mock API call - replace with actual API
-    // const response = await fetch('/api/auth/forgot-password', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email: email.value })
-    // })
-    
-    // if (!response.ok) {
-    //   throw new Error('Failed to send OTP')
-    // }
+    await forgotPasswordApi(email.value)
 
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    otpSent.value = true
+    // Backend intentionally does not reveal if email exists
     step.value = 2
+
   } catch (err) {
-    error.value = 'Failed to send OTP. Please try again.'
+    error.value = err?.response?.data?.detail || 'Failed to send OTP'
   } finally {
     isLoading.value = false
   }
 }
 
-const handleVerifyOTP = async () => {
+const handleVerifyOTP = () => {
   if (!otp.value.trim()) {
     error.value = 'Please enter the OTP'
     return
@@ -64,7 +55,6 @@ const handleVerifyOTP = async () => {
     return
   }
 
-  // Move to password reset step
   error.value = ''
   step.value = 3
 }
@@ -89,30 +79,19 @@ const handleResetPassword = async () => {
   error.value = ''
 
   try {
-    // Mock API call - replace with actual API
-    // const response = await fetch('/api/auth/reset-password', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     email: email.value,
-    //     otp: otp.value,
-    //     new_password: newPassword.value
-    //   })
-    // })
-    
-    // if (!response.ok) {
-    //   throw new Error('Failed to reset password')
-    // }
+    await resetPasswordApi({
+      email: email.value,
+      otp: otp.value,
+      new_password: newPassword.value
+    })
 
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    // Success - redirect to login
     router.push({
       path: '/login',
       query: { reset: 'success' }
     })
+
   } catch (err) {
-    error.value = 'Failed to reset password. Please try again.'
+    error.value = err?.response?.data?.detail || 'Failed to reset password'
   } finally {
     isLoading.value = false
   }
@@ -181,7 +160,7 @@ const goBack = () => {
 
         <!-- Progress bar -->
         <div class="w-full h-1.5 bg-slate-100 rounded-full mb-8 overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 rounded-full"
+          <div class="h-full bg-linear-to-r from-purple-600 to-pink-600 transition-all duration-500 rounded-full"
                :style="`width: ${(step / 3) * 100}%`"></div>
         </div>
 
@@ -217,7 +196,7 @@ const goBack = () => {
 
           <button type="submit"
                   :disabled="isLoading"
-                  class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full py-3.5 rounded-xl bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   style="font-family: 'Inter', sans-serif; font-size: 0.9375rem;">
             {{ isLoading ? 'Sending...' : 'Send OTP' }}
           </button>
@@ -244,7 +223,7 @@ const goBack = () => {
           </div>
 
           <button type="submit"
-                  class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg"
+                  class="w-full py-3.5 rounded-xl bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg"
                   style="font-family: 'Inter', sans-serif; font-size: 0.9375rem;">
             Verify OTP
           </button>
@@ -290,7 +269,7 @@ const goBack = () => {
 
           <button type="submit"
                   :disabled="isLoading"
-                  class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full py-3.5 rounded-xl bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-500 hover:to-pink-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   style="font-family: 'Inter', sans-serif; font-size: 0.9375rem;">
             {{ isLoading ? 'Resetting...' : 'Reset Password' }}
           </button>

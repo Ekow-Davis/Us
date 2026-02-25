@@ -2,9 +2,18 @@
 import { ref, computed } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useAuthStore } from '../../stores/auth'
+import { changeEmailApi, changePasswordApi } from '../../api/auth'
+import { leaveVaultApi, joinVaultApi } from '../../api/vault'
+import { useRouter } from 'vue-router'
+import { watch } from 'vue'
 
 // ── Active tab ────────────────────────────────────────────────────────────────
 const activeTab = ref('general')
+
+const auth = useAuthStore()
+const router = useRouter()
+
 
 const tabs = [
   { id: 'general', label: 'General',  icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' },
@@ -16,6 +25,7 @@ const tabs = [
 // ── General tab state ─────────────────────────────────────────────────────────
 const emailForm       = ref({ current: 'john@example.com', new: '', confirm: '' })
 const passwordForm    = ref({ current: '', new: '', confirm: '' })
+const showEmailPw     = ref(false)
 const showCurrentPw   = ref(false)
 const showNewPw       = ref(false)
 const showConfirmPw   = ref(false)
@@ -29,25 +39,64 @@ const successEmail    = ref(false)
 const successPassword = ref(false)
 
 const saveEmail = async () => {
-  if (!emailForm.value.new || emailForm.value.new !== emailForm.value.confirm) return
+  if (!emailForm.value.new || !emailForm.value.password) return
+
   savingEmail.value = true
-  await new Promise(r => setTimeout(r, 1000))
-  savingEmail.value = false
-  successEmail.value = true
-  console.log('Update email to:', emailForm.value.new)
-  setTimeout(() => { successEmail.value = false }, 3000)
+  successEmail.value = false
+
+  try {
+    await changeEmailApi({
+      new_email: emailForm.value.new,
+      password: emailForm.value.password
+    })
+
+    // Refresh user info
+    await auth.fetchUser()
+
+    emailForm.value.current = auth.user.email
+    emailForm.value.new = ''
+    emailForm.value.password = ''
+
+    successEmail.value = true
+
+  } catch (err) {
+    console.error(err?.response?.data?.detail || 'Email change failed')
+  } finally {
+    savingEmail.value = false
+  }
 }
 
 const savePassword = async () => {
-  if (!passwordForm.value.new || passwordForm.value.new !== passwordForm.value.confirm) return
-  savingPassword.value = true
-  await new Promise(r => setTimeout(r, 1000))
-  savingPassword.value = false
-  successPassword.value = true
-  console.log('Password changed')
-  setTimeout(() => { successPassword.value = false }, 3000)
-}
+  if (
+    !passwordForm.value.current ||
+    !passwordForm.value.new ||
+    passwordForm.value.new !== passwordForm.value.confirm
+  ) return
 
+  savingPassword.value = true
+  successPassword.value = false
+
+  try {
+    await changePasswordApi({
+      old_password: passwordForm.value.current,
+      new_password: passwordForm.value.new
+    })
+
+    passwordForm.value = {
+      current: '',
+      new: '',
+      confirm: ''
+    }
+
+    successPassword.value = true
+
+  } catch (err) {
+    console.error(err?.response?.data?.detail || 'Password change failed')
+  } finally {
+    savingPassword.value = false
+  }
+}
+ 
 // ── Vault tab state ───────────────────────────────────────────────────────────
 const showLeaveConfirm    = ref(false)
 const showSwitchVault     = ref(false)
@@ -59,11 +108,19 @@ const leaveSuccess        = ref(false)
 
 const leaveVault = async () => {
   leavingVault.value = true
-  await new Promise(r => setTimeout(r, 1200))
-  leavingVault.value = false
-  leaveSuccess.value = true
-  showLeaveConfirm.value = false
-  console.log('Left vault')
+  leaveSuccess.value = false
+
+  try {
+    await leaveVaultApi()
+
+    leaveSuccess.value = true
+    showLeaveConfirm.value = false
+
+  } catch (err) {
+    console.error(err?.response?.data?.detail || 'Failed to leave vault')
+  } finally {
+    leavingVault.value = false
+  }
 }
 
 const switchVault = async () => {
@@ -71,17 +128,30 @@ const switchVault = async () => {
     switchCodeError.value = 'Please enter a valid 8-character invitation code.'
     return
   }
+
   switchCodeError.value = ''
   switchingVault.value = true
-  await new Promise(r => setTimeout(r, 1400))
-  console.log('Leave current vault → join vault with code:', switchCode.value)
-  switchingVault.value = false
-  showSwitchVault.value = false
-  switchCode.value = ''
+
+  try {
+    // Step 1: Leave current vault
+    await leaveVaultApi()
+
+    // Step 2: Join new vault
+    await joinVaultApi(switchCode.value)
+
+    showSwitchVault.value = false
+    switchCode.value = ''
+
+  } catch (err) {
+    switchCodeError.value =
+      err?.response?.data?.detail || 'Failed to switch vault'
+  } finally {
+    switchingVault.value = false
+  }
 }
 
 // ── Profile tab state ─────────────────────────────────────────────────────────
-const displayName     = ref('John Doe')
+const displayName     = ref('')
 const savingName      = ref(false)
 const successName     = ref(false)
 const showDeleteConfirm = ref(false)
@@ -104,17 +174,29 @@ const deleteAccount = async () => {
   console.log('Account deleted')
 }
 
+// General for all?
+watch(
+  () => auth.user,
+  (user) => {
+    if (user) {
+      emailForm.value.current = user.email
+      displayName.value = user.display_name
+    }
+  },
+  { immediate: true }
+)
+
 // ── Privacy tab state ─────────────────────────────────────────────────────────
 const privacyReadReceipts = ref(true)
 const privacyActivity     = ref(false)
 const privacySignalCount  = ref(true)
-const sessionsExpanded    = ref(false)
+// const sessionsExpanded    = ref(false)
 
-const mockSessions = [
-  { device: 'Chrome · macOS', location: 'Cape Town, ZA', time: 'Active now', current: true },
-  { device: 'Safari · iPhone 15', location: 'Cape Town, ZA', time: '2 hours ago', current: false },
-  { device: 'Firefox · Windows', location: 'Unknown', time: '3 days ago', current: false },
-]
+// const mockSessions = [
+//   { device: 'Chrome · macOS', location: 'Cape Town, ZA', time: 'Active now', current: true },
+//   { device: 'Safari · iPhone 15', location: 'Cape Town, ZA', time: '2 hours ago', current: false },
+//   { device: 'Firefox · Windows', location: 'Unknown', time: '3 days ago', current: false },
+// ]
 </script>
 
 <template>
@@ -215,8 +297,13 @@ const mockSessions = [
                       <input v-model="emailForm.new" type="email" placeholder="you@example.com" class="settings-input"/>
                     </div>
                     <div class="settings-field-group">
-                      <label class="settings-label">Confirm New Email</label>
-                      <input v-model="emailForm.confirm" type="email" placeholder="Confirm new email" class="settings-input"/>
+                      <label class="settings-label">Password</label>
+                      <div class="settings-input-wrap">
+                        <input v-model="emailForm.password" :type="showEmailPw ? 'text' : 'password'" placeholder="Your Password to Change Email" class="settings-input"/>
+                        <button @click="showEmailPw = !showEmailPw" class="settings-eye-btn">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8-4 8-4-8-11-8-4 8-11 8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                      </div>
                     </div>
                     <div class="flex items-center gap-3 pt-1">
                       <button @click="saveEmail" :disabled="savingEmail" class="settings-btn settings-btn--primary">
@@ -584,7 +671,7 @@ const mockSessions = [
                 </div>
 
                 <!-- Active Sessions -->
-                <div class="settings-card">
+                <!-- <div class="settings-card">
                   <div class="settings-card-header">
                     <div class="settings-card-icon-wrap" style="background:#fefce8;">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -612,7 +699,7 @@ const mockSessions = [
                               class="text-xs settings-body text-red-500 hover:text-red-700 transition-colors font-medium">Revoke</button>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
 
             </Transition>

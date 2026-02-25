@@ -395,7 +395,7 @@ onUnmounted(() => {
                   </div>
                   
                   <!-- Heart Loading Animation -->
-                  <div class="relative w-24 h-24 flex-shrink-0">
+                  <div class="relative w-24 h-24 shrink-0">
                     <svg viewBox="0 0 100 100" class="w-full h-full">
                       <defs>
                         <clipPath id="heartClip">
@@ -434,7 +434,7 @@ onUnmounted(() => {
                   </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                <div class="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                   <div class="flex items-center gap-2">
                     <Clock :size="16" class="text-purple-600" />
                     <span class="text-sm font-medium text-purple-900">Blooms in {{ getCountdown(primaryBloom.bloom_date) }}</span>
@@ -471,7 +471,7 @@ onUnmounted(() => {
         <!-- Right Column: Recent Memories + Signals -->
         <div class="lg:col-span-1 space-y-6">
           
-          <div v-if="signalCount > 0" class="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl shadow-lg p-6 text-white">
+          <div v-if="signalCount > 0" class="bg-linear-to-br from-indigo-900 to-purple-900 rounded-2xl shadow-lg p-6 text-white">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                 <Sparkles :size="20" class="text-yellow-300 animate-pulse" />

@@ -34,3 +34,37 @@ export const getMeApi = () => {
 export const logoutApi = () => {
   return api.post("/auth/logout")
 }
+
+/* =========================================
+   PASSWORD MANAGEMENT
+========================================= */
+
+export const changePasswordApi = (data: {
+  old_password: string
+  new_password: string
+}) => {
+  return api.post("/auth/change-password", data)
+}
+
+export const forgotPasswordApi = (email: string) => {
+  return api.post("/auth/forgot-password", { email })
+}
+
+export const resetPasswordApi = (data: {
+  email: string
+  otp: string
+  new_password: string
+}) => {
+  return api.post("/auth/reset-password", data)
+}
+
+/* =========================================
+   EMAIL MANAGEMENT
+========================================= */
+
+export const changeEmailApi = (data: {
+  new_email: string
+  password: string
+}) => {
+  return api.post("/auth/change-email", data)
+}

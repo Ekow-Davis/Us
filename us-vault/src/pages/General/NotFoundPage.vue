@@ -158,7 +158,7 @@ const goBack = () => {
         </button>
         
         <button @click="goHome"
-                class="group flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 transition-all duration-200 shadow-lg shadow-purple-500/25"
+                class="group flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-linear-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 transition-all duration-200 shadow-lg shadow-purple-500/25"
                 style="font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600;">
           <Home :size="18" />
           Return Home

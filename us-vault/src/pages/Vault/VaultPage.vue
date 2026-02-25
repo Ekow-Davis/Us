@@ -2,31 +2,28 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { getVaultDetails } from '../../api/vault'
+import { useAuthStore } from '../../stores/auth'
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const vault = ref(null)
 const isLoading = ref(true)
 
-const loadVaultDetails = () => {
-  setTimeout(() => {
-    vault.value = {
-      vault_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      status: "active",
-      created_at: "2024-03-14T10:22:00Z",
-      created_by: "Amara",
-      partner_name: "Jordan",
-      stats: {
-        total_memories: 24,
-        total_seeds: 6,
-        total_images: 18,
-        total_videos: 4,
-        total_signals: 31,
-        first_memory_date: "2024-03-14T10:22:00Z",
-        last_activity_date: "2025-02-10T18:45:00Z"
-      }
-    }
+const auth = useAuthStore()
+
+const loadVaultDetails = async () => {
+  try {
+    isLoading.value = true
+
+    const res = await getVaultDetailsApi()
+    vault.value = res.data
+
+  } catch (err) {
+    console.error("Failed to load vault details")
+    vault.value = null
+  } finally {
     isLoading.value = false
-  }, 900)
+  }
 }
 
 // ── Computed ──────────────────────────────────────────────────────────────────

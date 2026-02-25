@@ -3,6 +3,9 @@ import { ref, computed, onUnmounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
+import { sendSignalApi } from "../../api/signal"
+import { useSignalStore } from "../../stores/signal"
+
 // ── State ─────────────────────────────────────────────────────────────────────
 const MAX_SIGNALS = 25
 const COOLDOWN_S  = 5
@@ -21,34 +24,43 @@ const canSend       = computed(() => !isCoolingDown.value && !isSending.value &&
 const remaining     = computed(() => MAX_SIGNALS - signalsSent.value)
 const progressAngle = computed(() => (signalsSent.value / MAX_SIGNALS) * 360)
 
+const signalStore = useSignalStore()
+
 // ── Send signal ───────────────────────────────────────────────────────────────
 const sendSignal = async () => {
   if (!canSend.value) return
 
-  isSending.value  = true
+  isSending.value = true
   isAnimating.value = true
 
-  // Dummy API call
-  console.log('Signal sent at', new Date().toISOString())
-  await new Promise(r => setTimeout(r, 600))
+  try {
+    await sendSignalApi()
 
-  signalsSent.value++
-  thoughtsToday.value.push(Date.now())
-  isSending.value  = false
+    signalsSent.value++
+    thoughtsToday.value.push(Date.now())
 
-  // Start cooldown
-  isCoolingDown.value = true
-  cooldownLeft.value  = COOLDOWN_S
+    // Start cooldown
+    isCoolingDown.value = true
+    cooldownLeft.value = COOLDOWN_S
 
-  cooldownTimer = setInterval(() => {
-    cooldownLeft.value--
-    if (cooldownLeft.value <= 0) {
-      clearInterval(cooldownTimer)
-      isCoolingDown.value = false
-    }
-  }, 1000)
+    cooldownTimer = setInterval(() => {
+      cooldownLeft.value--
+      if (cooldownLeft.value <= 0) {
+        clearInterval(cooldownTimer)
+        isCoolingDown.value = false
+      }
+    }, 1000)
 
-  // Keep thought bubble showing for 3.5s then fade
+    // Optional: refresh unread count for badge sync
+    await signalStore.fetchUnreadCount()
+
+  } catch (err) {
+    console.error("Failed to send signal", err)
+  } finally {
+    isSending.value = false
+  }
+
+
   clearTimeout(animTimer)
   animTimer = setTimeout(() => {
     isAnimating.value = false

@@ -4,6 +4,11 @@ import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { Bell, Check, CheckCheck, Trash2, Inbox } from 'lucide-vue-next'
+import {
+  getNotificationsApi,
+  markNotificationAsReadApi,
+  cleanupNotificationsApi
+} from '../../api/notifications'
 
 const router = useRouter()
 
@@ -18,115 +23,28 @@ const pageSize = ref(10)
 const totalPages = ref(1)
 const totalNotifications = ref(0)
 
-// ── Mock API Calls ─────────────────────────────────────────────────────────
-const fetchNotifications = async (page = 1, size = 10) => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Mock notifications data
-  const allNotifications = [
-    {
-      id: 'notif-001',
-      user_id: 'user-001',
-      type: 'seed_bloomed',
-      title: 'Seed Ready to Bloom',
-      message: 'Your seed "The First Time We Laughed Together" is ready to bloom!',
-      is_read: false,
-      created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-      related_entity_id: 'seed-008',
-      related_entity_type: 'seed'
-    },
-    {
-      id: 'notif-002',
-      user_id: 'user-001',
-      type: 'memory_created',
-      title: 'New Memory Created',
-      message: 'Your partner added a new memory: "Summer Vacation 2024"',
-      is_read: false,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      related_entity_id: 'mem-010',
-      related_entity_type: 'memory'
-    },
-    {
-      id: 'notif-003',
-      user_id: 'user-001',
-      type: 'seed_planted',
-      title: 'Partner Planted a Seed',
-      message: 'Your partner planted a new seed that will bloom in 14 days',
-      is_read: true,
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      related_entity_id: 'seed-009',
-      related_entity_type: 'seed'
-    },
-    {
-      id: 'notif-004',
-      user_id: 'user-001',
-      type: 'vault_invitation',
-      title: 'Vault Invitation',
-      message: 'You have been invited to join "Our Forever Vault"',
-      is_read: true,
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      related_entity_id: 'vault-002',
-      related_entity_type: 'vault'
-    },
-    {
-      id: 'notif-005',
-      user_id: 'user-001',
-      type: 'seed_bloomed',
-      title: 'Seed Bloomed into Memory',
-      message: '"What I Noticed First" has bloomed into a beautiful memory',
-      is_read: true,
-      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      related_entity_id: 'seed-002',
-      related_entity_type: 'seed'
-    },
-    {
-      id: 'notif-006',
-      user_id: 'user-001',
-      type: 'memory_liked',
-      title: 'Memory Liked',
-      message: 'Your partner loved your memory "First Date Anniversary"',
-      is_read: true,
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      related_entity_id: 'mem-005',
-      related_entity_type: 'memory'
-    }
-  ]
-  
-  const start = (page - 1) * size
-  const paginatedNotifs = allNotifications.slice(start, start + size)
-  
-  return {
-    items: paginatedNotifs,
-    total: allNotifications.length,
-    page,
-    page_size: size,
-    total_pages: Math.ceil(allNotifications.length / size)
-  }
-}
+// ── API Calls ─────────────────────────────────────────────────────────
 
 const markAsRead = async (notificationId) => {
-  await new Promise(resolve => setTimeout(resolve, 200))
-  
-  // Update local state
+  await markNotificationAsReadApi(notificationId)
+
   const notif = notifications.value.find(n => n.id === notificationId)
-  if (notif) {
+  if (notif) notif.is_read = true
+}
+
+const markAllAsRead = async () => {
+  const unread = notifications.value.filter(n => !n.is_read)
+
+  for (const notif of unread) {
+    await markNotificationAsReadApi(notif.id)
     notif.is_read = true
   }
 }
 
-const markAllAsRead = async () => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Mark all as read in local state
-  notifications.value.forEach(n => {
-    n.is_read = true
-  })
-}
-
 const clearNotifications = async () => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Remove all read notifications
+  await cleanupNotificationsApi()
+
+  // Remove read notifications locally
   notifications.value = notifications.value.filter(n => !n.is_read)
   totalNotifications.value = notifications.value.length
 }
@@ -206,11 +124,17 @@ const goToPage = (page) => {
 
 const loadNotifications = async () => {
   isLoading.value = true
+
   try {
-    const data = await fetchNotifications(currentPage.value, pageSize.value)
-    notifications.value = data.items
-    totalNotifications.value = data.total
-    totalPages.value = data.total_pages
+    const res = await getNotificationsApi(
+      currentPage.value,
+      pageSize.value
+    )
+
+    notifications.value = res.data.items
+    totalNotifications.value = res.data.total
+    totalPages.value = res.data.total_pages
+
   } catch (error) {
     console.error('Failed to load notifications:', error)
   } finally {

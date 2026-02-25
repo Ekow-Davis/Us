@@ -1,25 +1,16 @@
 <script setup>
-import { ref, onMounted } from "vue"
 import FlowerFieldOverlay from "./FlowerFieldOverlay.vue"
 
 import Sidebar from "../../components/layout/Sidebar.vue"
 import DashboardContent from "./DashboardContent.vue"
 
-const showFlowers = ref(false)
-const signalCount = ref(0)
+import { onMounted } from "vue"
+import { useSignalStore } from "../../stores/signal"
+
+const signal = useSignalStore()
 
 onMounted(() => {
-  // Simulate API call delay
-  setTimeout(() => {
-    // This would come from your API response
-    signalCount.value = 13
-    console.log(`Checking signal count: ${signalCount.value}`)
-    
-    if (signalCount.value > 0) {
-      showFlowers.value = true
-      console.log("Flowers will bloom!")
-    }
-  }, 1200)
+  signal.fetchUnreadCount()
 })
 </script>
 
@@ -29,8 +20,8 @@ onMounted(() => {
     <DashboardContent />
 
     <FlowerFieldOverlay 
-      v-if="showFlowers" 
-      :signal-count="signalCount" 
+      v-if="signal.unreadCount > 0" 
+      :signal-count="signal.unreadCount" 
     />
   </div>
   </Sidebar>

@@ -163,8 +163,13 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ChevronLeft, Plus, Users } from 'lucide-vue-next';
+import { createVaultApi, joinVaultApi } from "../../api/vault"
+import { useAuthStore } from "../../stores/auth"
 
 const router = useRouter();
+
+const auth = useAuthStore()
+const errorMessage = ref(null)
 
 // State
 const currentStep = ref('choice'); // 'choice', 'createOwn', 'joinVault'
@@ -240,31 +245,38 @@ const simulateLoading = () => {
 
 // Handle Create Own Vault
 const handleCreateOwn = async () => {
-  console.log('Creating own vault...');
-  
-  await simulateLoading();
-  
-  // API call placeholder
-  // const response = await fetch('/api/create-vault', { method: 'POST' });
-  
-  router.push('./Dashboard');
-};
+  try {
+    errorMessage.value = null
+    await simulateLoading()
+
+    const res = await createVaultApi()
+
+    // Optional: store invite code if you want to display it later
+    console.log("Vault created:", res.data)
+
+    router.push('/dashboard')
+
+  } catch (err) {
+    errorMessage.value = err?.response?.data?.detail || "Failed to create vault"
+  }
+}
 
 // Handle Join Vault
 const handleJoinVault = async () => {
-  const code = vaultCode.value.join('').toUpperCase();
-  console.log('Joining vault with code:', code);
-  
-  await simulateLoading();
-  
-  // API call placeholder
-  // const response = await fetch('/api/join-vault', { 
-  //   method: 'POST',
-  //   body: JSON.stringify({ code })
-  // });
-  
-  router.push('./Dashboard');
-};
+  const code = vaultCode.value.join('').toUpperCase()
+
+  try {
+    errorMessage.value = null
+    await simulateLoading()
+
+    await joinVaultApi(code)
+
+    router.push('/dashboard')
+
+  } catch (err) {
+    errorMessage.value = err?.response?.data?.detail || "Invalid invite code"
+  }
+}
 
 // Code input handlers
 const handleCodeInput = (index, event) => {

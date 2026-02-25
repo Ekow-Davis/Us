@@ -3,16 +3,17 @@ import { ref, computed, watch } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
+import {
+  createJournalApi, updateJournalApi, deleteJournalApi, 
+  convertJournalApi, getPrivateJournalsApi, getSharedJournalsApi
+} from "../../api/journal"
+
+import { onMounted } from "vue"
+
 // ── State ─────────────────────────────────────────────────────────────────────
 const activeTab = ref('private') // 'private' | 'shared'
 const view = ref('list') // 'list' | 'editor' | 'reader'
-const notebooks = ref([
-  { id: 'nb-001', title: 'Morning Thoughts', content: '**Today was beautiful.**\n\nWe walked through the park and I couldn\'t stop thinking about how lucky I am.\n\nThe trees were blooming — tiny pink flowers everywhere.\n\nI want to remember this.\n\n---\n\n*Tomorrow: Coffee at 9am.*', visibility: 'private', status: 'active', created_at: '2026-01-10T08:00:00Z', edited_at: '2026-02-15T10:30:00Z' },
-  { id: 'nb-002', title: 'Travel Plans', content: '# Summer trip ideas\n\n- Santorini (September)\n- Tokyo (April)\n- Iceland (June)\n\n**Budget:** $5000\n\n*Notes:* Check flight deals in March.', visibility: 'private', status: 'active', created_at: '2026-01-05T14:20:00Z', edited_at: '2026-02-10T09:15:00Z' },
-  { id: 'nb-003', title: 'Our Story (Shared)', content: '# How We Met\n\nIt was a rainy Tuesday.\n\nYou were holding a book I\'d been meaning to read.\n\nI asked if it was any good.\n\nYou said: *"I\'ll tell you when I\'m done."*\n\nAnd here we are.', visibility: 'shared', status: 'active', created_at: '2025-12-20T16:00:00Z', edited_at: '2026-01-12T11:45:00Z' },
-  { id: 'nb-004', title: 'Recipe Collection', content: '## Grandma\'s Pancakes\n\n**Ingredients:**\n- 2 cups flour\n- 1 tbsp sugar\n- 2 tsp baking powder\n- 1 egg\n- 1.5 cups milk\n\n**Steps:**\n1. Mix dry ingredients\n2. Add wet ingredients\n3. Cook on medium heat\n\n*Perfect every time.*', visibility: 'private', status: 'active', created_at: '2025-11-15T12:00:00Z', edited_at: '2026-01-08T14:20:00Z' },
-  { id: 'nb-005', title: 'Goals for Us', content: '**Things we want to do together:**\n\n- Learn to cook Thai food\n- Build a garden\n- Visit all the national parks\n- Write a book (maybe?)\n\nNo rush. Just us.', visibility: 'shared', status: 'active', created_at: '2025-10-01T09:00:00Z', edited_at: '2025-12-05T18:30:00Z' },
-])
+const notebooks = ref([])
 
 const currentNotebook = ref(null)
 const editorContent = ref('')
@@ -28,6 +29,28 @@ const showConvertConfirm = ref(false)
 const notebookToConvert = ref(null)
 
 // ── Computed ──────────────────────────────────────────────────────────────────
+const fetchJournals = async () => {
+  try {
+    if (activeTab.value === "private") {
+      const res = await getPrivateJournalsApi(currentPage.value, pageSize)
+      notebooks.value = res.data.items
+    } else {
+      const res = await getSharedJournalsApi(currentPage.value, pageSize)
+      notebooks.value = res.data.items
+    }
+  } catch (err) {
+    console.error("Failed to fetch journals")
+  }
+}
+
+onMounted(fetchJournals)
+
+watch(activeTab, async () => {
+  view.value = "list"
+  currentNotebook.value = null
+  await fetchJournals()
+})
+
 const filteredNotebooks = computed(() =>
   notebooks.value.filter(nb => nb.visibility === activeTab.value)
 )
@@ -133,79 +156,96 @@ const openNotebook = (notebook) => {
 
 const createNotebook = async () => {
   if (!newNotebookTitle.value.trim()) return
-  const payload = {
-    title: newNotebookTitle.value,
-    content: 'express what you wish',
-    visibility: 'private'
+
+  try {
+    const res = await createJournalApi({
+      title: newNotebookTitle.value,
+      content: "express what you wish",
+      visibility: "private"
+    })
+
+    notebooks.value.unshift(res.data)
+
+    showNewNotebook.value = false
+    newNotebookTitle.value = ""
+
+    openNotebook(res.data)
+  } catch (err) {
+    console.error("Failed to create journal")
   }
-  console.log('Creating notebook:', payload)
-  await new Promise(r => setTimeout(r, 600))
-  const newNb = {
-    id: 'nb-' + Date.now(),
-    ...payload,
-    status: 'active',
-    created_at: new Date().toISOString(),
-    edited_at: new Date().toISOString()
-  }
-  notebooks.value.unshift(newNb)
-  showNewNotebook.value = false
-  newNotebookTitle.value = ''
-  openNotebook(newNb)
 }
 
 const saveNotebook = async () => {
   if (!currentNotebook.value) return
+
   isSaving.value = true
-  const payload = {
-    id: currentNotebook.value.id,
-    title: editorTitle.value,
-    content: editorContent.value,
-    visibility: currentNotebook.value.visibility
+
+  try {
+    const res = await updateJournalApi(currentNotebook.value.id, {
+      title: editorTitle.value,
+      content: editorContent.value
+    })
+
+    const idx = notebooks.value.findIndex(nb => nb.id === currentNotebook.value.id)
+    if (idx !== -1) {
+      notebooks.value[idx] = res.data
+      currentNotebook.value = res.data
+    }
+  } catch (err) {
+    console.error("Failed to update journal")
+  } finally {
+    isSaving.value = false
   }
-  console.log('Updating notebook:', payload)
-  await new Promise(r => setTimeout(r, 800))
-  const idx = notebooks.value.findIndex(nb => nb.id === currentNotebook.value.id)
-  if (idx !== -1) {
-    notebooks.value[idx] = { ...notebooks.value[idx], title: editorTitle.value, content: editorContent.value, edited_at: new Date().toISOString() }
-    currentNotebook.value = notebooks.value[idx]
-  }
-  isSaving.value = false
 }
 
 const shareNotebook = async (notebook) => {
-  console.log('Sharing notebook:', notebook.id)
-  await new Promise(r => setTimeout(r, 600))
-  const idx = notebooks.value.findIndex(nb => nb.id === notebook.id)
-  if (idx !== -1) {
-    notebooks.value[idx].visibility = 'shared'
-    notebooks.value[idx].edited_at = new Date().toISOString()
-  }
-  showShareConfirm.value = false
-  notebookToShare.value = null
-  if (currentNotebook.value?.id === notebook.id) {
-    view.value = 'list'
+  try {
+    await updateJournalApi(notebook.id, {
+      visibility: "shared"
+    })
+
+    await fetchJournals()
+
+    showShareConfirm.value = false
+    notebookToShare.value = null
+
+    view.value = "list"
     currentNotebook.value = null
+
+  } catch (err) {
+    console.error("Failed to share journal")
   }
 }
 
 const deleteNotebook = async (notebook) => {
-  console.log('Deleting notebook:', notebook.id)
-  await new Promise(r => setTimeout(r, 600))
-  notebooks.value = notebooks.value.filter(nb => nb.id !== notebook.id)
-  showDeleteConfirm.value = false
-  notebookToDelete.value = null
-  if (currentNotebook.value?.id === notebook.id) {
-    view.value = 'list'
+  try {
+    await deleteJournalApi(notebook.id)
+
+    notebooks.value = notebooks.value.filter(nb => nb.id !== notebook.id)
+
+    showDeleteConfirm.value = false
+    notebookToDelete.value = null
+
+    view.value = "list"
     currentNotebook.value = null
+
+  } catch (err) {
+    console.error("Failed to delete journal")
   }
 }
 
 const convertToMemory = async (notebook) => {
-  console.log('Converting to memory:', notebook.id)
-  await new Promise(r => setTimeout(r, 800))
-  console.log('Memory created from notebook content')
-  showConvertConfirm.value = false
-  notebookToConvert.value = null
+  try {
+    await convertJournalApi(notebook.id)
+
+    await fetchJournals()
+
+    showConvertConfirm.value = false
+    notebookToConvert.value = null
+
+  } catch (err) {
+    console.error("Failed to convert journal")
+  }
 }
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
