@@ -289,6 +289,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getUnreadNotificationsCountApi } from '../../api/notifications'
 import {
   Menu, Home, HelpCircle, Plus, Sprout, FilePlus, Heart,
   Shield, Zap, Settings, ChevronsUpDown, LogOut, Bell, User,
@@ -349,12 +350,8 @@ const iconWrap = (path) => {
 // Fetch unread notifications count
 const fetchUnreadCount = async () => {
   try {
-    // Mock API call - replace with actual API
-    await new Promise(resolve => setTimeout(resolve, 200))
-    // const response = await fetch('/api/notifications/unread-count')
-    // const data = await response.json()
-    // unreadCount.value = data.unread_count
-    unreadCount.value = 2 // Mock value
+    const response = await getUnreadNotificationsCountApi()
+    unreadCount.value = response.unread_count
   } catch (error) {
     console.error('Failed to fetch unread count:', error)
   }

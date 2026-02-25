@@ -3,7 +3,7 @@ import { ref, computed, onUnmounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
-import { sendSignalApi } from "../../api/signal"
+import { sendSignalApi } from "../../api/signals"
 import { useSignalStore } from "../../stores/signal"
 
 // ── State ─────────────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
-import { getVaultDetails } from '../../api/vault'
+import { getVaultDetailsApi } from '../../api/vault'
 import { useAuthStore } from '../../stores/auth'
 
 // ── Data ─────────────────────────────────────────────────────────────────────

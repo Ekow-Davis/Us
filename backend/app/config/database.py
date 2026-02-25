@@ -5,6 +5,8 @@ from app.config.config import settings
 engine = create_engine(
     settings.DATABASE_URL,
     echo=False,  # set False later for production, True for development
+    pool_pre_ping=True,
+    pool_recycle=300,  # recycle connections after 5 minutes
 )
 
 SessionLocal = sessionmaker(

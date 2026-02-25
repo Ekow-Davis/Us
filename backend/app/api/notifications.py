@@ -70,7 +70,6 @@ def get_unread_count(
 
     return {"unread_count": count}
 
-
 # Cleanup Endpoint
 @router.delete("/cleanup")
 def cleanup_notifications(
