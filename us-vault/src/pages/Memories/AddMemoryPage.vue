@@ -2,8 +2,12 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useMemoryStore } from '../../stores/memories'
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// Stores
+const memoryStore = useMemoryStore()
+
+// ── State ───────────
 const title = ref('')
 const content = ref('')
 const memoryDate = ref(new Date().toISOString())
@@ -23,7 +27,7 @@ const toast = ref({ visible: false, message: '', type: 'success' })
 const liveTime = ref(new Date())
 let clockInterval = null
 
-// ── Live clock ────────────────────────────────────────────────────────────────
+// ── Live clock ──────
 onMounted(() => {
   clockInterval = setInterval(() => {
     liveTime.value = new Date()
@@ -32,7 +36,7 @@ onMounted(() => {
 })
 onUnmounted(() => clearInterval(clockInterval))
 
-// ── Computed ──────────────────────────────────────────────────────────────────
+// ── Computed ──────────────────
 const formattedLiveDate = computed(() =>
   liveTime.value.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 )
@@ -43,7 +47,7 @@ const previewDate = computed(() =>
   liveTime.value.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 )
 
-// ── Media ─────────────────────────────────────────────────────────────────────
+// ── Media ──────────────────────────
 const MAX_IMAGE_MB = 10
 const MAX_VIDEO_MB = 50
 
@@ -72,37 +76,59 @@ const toggleVideoMute = () => {
   if (videoRef.value) videoRef.value.muted = videoMuted.value
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// ── Toast ───────────────────────────
 const showToast = (message, type = 'success') => {
   toast.value = { visible: true, message, type }
   setTimeout(() => { toast.value.visible = false }, 4000)
 }
 
-// ── Submit ────────────────────────────────────────────────────────────────────
+// ── Submit ───────────────────────────────
 const handleSubmit = async () => {
-  if (!title.value.trim()) { showToast('Please give your memory a title.', 'error'); return }
-  isSubmitting.value = true
-
-  const memoryPayload = { title: title.value, content: content.value, memory_date: memoryDate.value }
-  console.log('Creating memory:', memoryPayload)
-  await new Promise(r => setTimeout(r, 1100))
-  const fakeMemoryId = 'mem_' + Math.random().toString(36).substr(2, 9)
-  showToast('✦ Memory captured! Adding media...')
-
-  if (mediaFile.value) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      console.log('Uploading media for memory:', fakeMemoryId, '| Type:', mediaFile.value.type, '| Size:', (mediaFile.value.size / 1024 / 1024).toFixed(2) + 'MB')
-      console.log('Media payload:', { memory_id: fakeMemoryId, file: '[base64 data]' })
-      showToast('✦ Memory saved to your vault.')
-    }
-    reader.readAsDataURL(mediaFile.value)
-  } else {
-    showToast('✦ Memory saved to your vault.')
+  if (!title.value.trim()) {
+    showToast('Please give your memory a title.', 'error')
+    return
   }
 
-  title.value = ''; content.value = ''; removeMedia()
-  isSubmitting.value = false
+  isSubmitting.value = true
+
+  try {
+    /* Create Memory */
+    const res = await memoryStore.createMemory({
+      title: title.value,
+      content: content.value,
+      memory_date: memoryDate.value
+    })
+
+    // Important: createMemory must return response
+    const memoryId = res?.id || res?.data?.id
+
+    if (!memoryId) {
+      throw new Error('Memory ID not returned.')
+    }
+
+    showToast('✦ Memory captured! Uploading media...')
+
+    /* Upload Media (if exists) */
+    if (mediaFile.value) {
+      await memoryStore.uploadMedia(memoryId, mediaFile.value)
+    }
+
+    showToast(' Memory saved to your vault.')
+
+    /* Reset Form */
+    title.value = ''
+    content.value = ''
+    removeMedia()
+
+  } catch (err) {
+    console.error(err)
+    showToast(
+      err?.response?.data?.detail || 'Failed to create memory.',
+      'error'
+    )
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script> 
 
@@ -116,7 +142,7 @@ const handleSubmit = async () => {
           @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Lato:wght@300;400;700&display=swap');
         </component>
 
-        <!-- ── Toast ──────────────────────────────────────────────── -->
+        <!-- ── Toast ─────────────────── -->
         <Transition name="toast-slide">
           <div v-if="toast.visible"
               :class="['fixed top-6 right-6 z-50 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-sm',
@@ -126,7 +152,7 @@ const handleSubmit = async () => {
           </div>
         </Transition>
 
-        <!-- ── Background Decorations ─────────────────────────────── -->
+        <!-- ── Background Decorations ── -->
         <div class="pointer-events-none select-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <!-- Warm gradient blobs -->
           <div class="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-20"
@@ -168,10 +194,10 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- ── Layout: Form + Preview ──────────────────────────────── -->
+        <!-- ── Layout: Form + Preview ─── -->
         <div class="relative z-10 flex min-h-screen">
 
-          <!-- ── Form Column ─────────────────────────────────────── -->
+          <!-- ── Form Column ────────── -->
           <div class="flex-1 max-w-2xl mx-auto px-4 sm:px-8 py-12 lg:mx-0 lg:max-w-none lg:w-0 lg:flex-[0_0_55%] xl:flex-[0_0_52%]">
 
             <!-- Header -->
@@ -204,7 +230,7 @@ const handleSubmit = async () => {
               <p class="mem-body text-xs text-gray-400 mt-2 ml-1">Memory time is always now — this moment, preserved as-is.</p>
             </div>
 
-            <!-- ── Form ──────────────────────────────────────────── -->
+            <!-- ── Form ─────────────── -->
             <form @submit.prevent="handleSubmit" class="space-y-6">
 
               <!-- Title -->
@@ -409,7 +435,7 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- ── Mobile Preview Drawer ──────────────────────────────── -->
+        <!-- ── Mobile Preview Drawer ─── -->
         <div class="lg:hidden fixed right-0 top-1/2 -translate-y-1/2 z-40" style="pointer-events: all;">
           <!-- Pull tab -->
           <button @click="previewOpen = !previewOpen"

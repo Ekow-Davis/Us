@@ -41,11 +41,11 @@
         <button @click="toggleProfileMenu"
                 class="flex items-center gap-2.5 pl-3 pr-2 py-1.5 rounded-xl transition-all duration-200 hover:bg-purple-50 group">
           <div class="text-right hidden sm:block">
-            <p class="text-xs font-semibold text-gray-800 leading-none" style="font-family:'DM Sans',sans-serif;">{{ user.username }}</p>
+            <p class="text-xs font-semibold text-gray-800 leading-none" style="font-family:'DM Sans',sans-serif;">{{ user.display_name }}</p>
             <p class="text-xs text-gray-400 mt-0.5">{{ user.email }}</p>
           </div>
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style="background: linear-gradient(135deg,#ec4899,#a855f7);">
-            {{ user.username?.charAt(0)?.toUpperCase() || 'U' }}
+            {{ user.display_name?.charAt(0)?.toUpperCase() || 'U' }}
           </div>
           <ChevronsUpDown :size="14" class="text-gray-400 group-hover:text-purple-600 transition-colors" />
         </button>
@@ -57,7 +57,7 @@
                style="box-shadow: 0 16px 48px rgba(124,58,237,0.14), 0 4px 12px rgba(0,0,0,0.06);">
             <!-- User header in dropdown -->
             <div class="px-4 py-3 border-b border-gray-50" style="background: linear-gradient(135deg,#faf5ff,#fff);">
-              <p class="text-xs font-semibold text-gray-800" style="font-family:'Cormorant Garamond',serif; font-size:0.95rem;">{{ user.name }}</p>
+              <p class="text-xs font-semibold text-gray-800" style="font-family:'Cormorant Garamond',serif; font-size:0.95rem;">{{ user.display_name }}</p>
               <p class="text-xs text-gray-400">{{ user.email }}</p>
             </div>
             <div class="py-1">
@@ -73,7 +73,7 @@
                   <span style="font-family:'DM Sans',sans-serif; font-size:0.8125rem;">Notifications</span>
                   <span v-if="unreadCount > 0" 
                         class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-bold">
-                    {{ unreadCount }}
+                    {{ unreadCount > 99 ? '99+' : unreadCount }}
                   </span>
                 </div>
               </router-link>
@@ -295,7 +295,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getUnreadNotificationsCountApi } from '../../api/notifications'
 import {
@@ -305,6 +305,9 @@ import {
   FolderHeart
 } from 'lucide-vue-next'
 
+import { useAuthStore } from '../../stores/auth'
+
+const auth = useAuthStore()
 const route  = useRoute()
 const router = useRouter()
 
@@ -313,13 +316,9 @@ const isMobile         = ref(window.innerWidth < 768)
 const isProfileMenuOpen = ref(false)
 const sidebarRef       = ref(null)
 const profileMenuRef   = ref(null)
-const unreadCount      = ref(2) // This will be fetched from API
+const unreadCount      = ref(0) // This will be fetched from API
 
-const user = ref({
-  name: 'John Doe',
-  username: 'johndoe',
-  email: 'john@example.com'
-})
+const user = computed(() => auth.user || { username: 'User', email: 'user@email.com' })
 
 const toggleSidebar     = () => { isSidebarOpen.value = !isSidebarOpen.value }
 const toggleProfileMenu = () => { isProfileMenuOpen.value = !isProfileMenuOpen.value }
@@ -360,7 +359,7 @@ const iconWrap = (path) => {
 const fetchUnreadCount = async () => {
   try {
     const response = await getUnreadNotificationsCountApi()
-    unreadCount.value = response.unread_count
+    unreadCount.value = response.data.unread_count
   } catch (error) {
     console.error('Failed to fetch unread count:', error)
   }

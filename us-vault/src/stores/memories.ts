@@ -26,9 +26,7 @@ export const useMemoryStore = defineStore("memory", {
 
   actions: {
 
-    /* ===============================
-       FETCH
-    ================================ */
+    /* FETCH */
 
     async fetchMemories(page = 1) {
       this.isLoading = true
@@ -61,9 +59,7 @@ export const useMemoryStore = defineStore("memory", {
       this.currentMemory = res.data
     },
 
-    /* ===============================
-       CREATE
-    ================================ */
+    /* CREATE */
 
     async createMemory(data: {
       title: string
@@ -71,12 +67,13 @@ export const useMemoryStore = defineStore("memory", {
       memory_date: string
     }) {
       const res = await createMemoryApi(data)
+
       this.memories.unshift(res.data)
+
+      return res.data
     },
 
-    /* ===============================
-       UPDATE
-    ================================ */
+    /* UPDATE */
 
     async updateMemory(memoryId: string, data: any) {
       const res = await updateMemoryApi(memoryId, data)
@@ -91,18 +88,14 @@ export const useMemoryStore = defineStore("memory", {
       }
     },
 
-    /* ===============================
-       DELETE
-    ================================ */
+    /* DELETE */
 
     async deleteMemory(memoryId: string) {
       await deleteMemoryApi(memoryId)
       this.memories = this.memories.filter(m => m.id !== memoryId)
     },
 
-    /* ===============================
-       MEDIA
-    ================================ */
+    /* MEDIA */
 
     async uploadMedia(memoryId: string, file: File) {
       await uploadMemoryMediaApi(memoryId, file)

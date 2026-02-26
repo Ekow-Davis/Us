@@ -1,70 +1,68 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 
+import { useMemoryStore } from '../../stores/memories'
+import { useAuthStore } from '../../stores/auth'
+import { useVaultStore } from '../../stores/vault'
+
 const router = useRouter()
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
-const CURRENT_USER_ID = 'user-001'
+const memoryStore = useMemoryStore()
+const auth = useAuthStore()
+const vault = useVaultStore()
 
-const allMemories = ref([
-  { id: 'mem-001', vault_id: 'v1', created_by: 'user-001', title: 'The Night We Got Caught in the Rain', content: 'We ran from the café to the car and you were laughing so hard you couldn\'t even open the door. Your hair was soaked and you looked absolutely unreal. I don\'t think I\'ve ever loved a moment more than that one.', memory_date: '2025-02-10T19:30:00Z', created_at: '2025-02-10T19:30:00Z', edited_at: '2025-02-10T19:30:00Z', is_seed: false, media: [{ id: 'm1', file_url: 'https://picsum.photos/seed/rain/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-002', vault_id: 'v1', created_by: 'user-002', title: 'Sunday Morning Pancakes', content: 'Made them from scratch for the first time. Burned the first three. The fourth one came out perfect. You ate two of the burned ones without saying a word and I knew then.', memory_date: '2025-01-28T10:15:00Z', created_at: '2025-01-28T10:15:00Z', edited_at: '2025-01-28T10:15:00Z', is_seed: false, media: [{ id: 'm2', file_url: 'https://picsum.photos/seed/pancake/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-003', vault_id: 'v1', created_by: 'user-001', title: 'Museum Afternoon', content: 'You stood in front of that painting for eleven minutes. I timed it. When you finally turned around your eyes were wet and you just said "let\'s go get food" like nothing happened. I still think about what you were thinking.', memory_date: '2025-01-15T14:00:00Z', created_at: '2025-01-15T14:00:00Z', edited_at: '2025-01-15T14:00:00Z', is_seed: false, media: [] },
-  { id: 'mem-004', vault_id: 'v1', created_by: 'user-002', title: 'First Grocery Run Together', content: 'We spent 40 minutes arguing about which pasta sauce to buy. You won. It was actually better. I haven\'t admitted that out loud until now.', memory_date: '2025-01-03T16:45:00Z', created_at: '2025-01-03T16:45:00Z', edited_at: '2025-01-03T16:45:00Z', is_seed: false, media: [] },
-  { id: 'mem-005', vault_id: 'v1', created_by: 'user-001', title: 'New Year\'s at Home', content: 'We missed the countdown because we were watching that documentary. By the time we noticed it was 12:04. You kissed me anyway and said "still counts." It really did.', memory_date: '2025-01-01T00:04:00Z', created_at: '2025-01-01T00:04:00Z', edited_at: '2025-01-01T00:04:00Z', is_seed: false, media: [{ id: 'm5', file_url: 'https://picsum.photos/seed/newyear/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-006', vault_id: 'v1', created_by: 'user-002', title: 'The Long Drive Back', content: 'Six hours, your playlist, and that diner we stopped at somewhere in the middle. You ordered pie. I ordered pie. The waitress said we looked like we\'d been together forever.', memory_date: '2024-12-28T20:00:00Z', created_at: '2024-12-28T20:00:00Z', edited_at: '2024-12-28T20:00:00Z', is_seed: false, media: [{ id: 'm6', file_url: 'https://picsum.photos/seed/drive/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-007', vault_id: 'v1', created_by: 'user-001', title: 'Learning to Make Your Grandmother\'s Recipe', content: 'You dictated it from memory. I wrote every word down. It took us three hours and two phone calls to your mom. We still didn\'t get it exactly right but it was ours.', memory_date: '2024-12-20T18:30:00Z', created_at: '2024-12-20T18:30:00Z', edited_at: '2024-12-20T18:30:00Z', is_seed: false, media: [] },
-  { id: 'mem-008', vault_id: 'v1', created_by: 'user-002', title: 'Afternoon Nap in the Garden', content: 'You fell asleep reading. The light was coming through the leaves. I didn\'t want to wake you. I just sat there for a while, watching the afternoon pass.', memory_date: '2024-12-12T15:00:00Z', created_at: '2024-12-12T15:00:00Z', edited_at: '2024-12-12T15:00:00Z', is_seed: false, media: [{ id: 'm8', file_url: 'https://picsum.photos/seed/garden/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-009', vault_id: 'v1', created_by: 'user-001', title: 'Your First Work Presentation', content: 'You practiced it four times in front of me. The night before you couldn\'t sleep. The day after you called me laughing because they loved it. I already knew they would.', memory_date: '2024-11-30T09:00:00Z', created_at: '2024-11-30T09:00:00Z', edited_at: '2024-11-30T09:00:00Z', is_seed: false, media: [] },
-  { id: 'mem-010', vault_id: 'v1', created_by: 'user-002', title: 'Bookshop on a Rainy Tuesday', content: 'We weren\'t planning to go anywhere. You grabbed your jacket and just said "come on." We came home with nine books and a candle that smelled like cedar.', memory_date: '2024-11-18T13:30:00Z', created_at: '2024-11-18T13:30:00Z', edited_at: '2024-11-18T13:30:00Z', is_seed: false, media: [{ id: 'm10', file_url: 'https://picsum.photos/seed/books/800/500', file_type: 'image/jpeg' }] },
-  { id: 'mem-011', vault_id: 'v1', created_by: 'user-001', title: 'Late Night Conversations', content: 'We talked until 3am about everything. Childhood things. Future things. The kind of conversation that only happens when the rest of the world goes quiet.', memory_date: '2024-11-05T03:00:00Z', created_at: '2024-11-05T03:00:00Z', edited_at: '2024-11-05T03:00:00Z', is_seed: true, media: [] },
-  { id: 'mem-012', vault_id: 'v1', created_by: 'user-002', title: 'Morning Coffee Without Saying Anything', content: 'Sometimes the best moments aren\'t about what was said. Just the two of us, the steam from the cups, and the light through the kitchen window.', memory_date: '2024-10-22T08:00:00Z', created_at: '2024-10-22T08:00:00Z', edited_at: '2024-10-22T08:00:00Z', is_seed: false, media: [{ id: 'm12', file_url: 'https://picsum.photos/seed/coffee/800/500', file_type: 'image/jpeg' }] },
-])
+/* Pagination (Backend-driven) */
 
-// ── Pagination ────────────────────────────────────────────────────────────────
 const perPage = ref(6)
 const currentPage = ref(1)
 
-const totalPages = computed(() => Math.ceil(allMemories.value.length / perPage.value))
-
-const paginatedMemories = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value
-  return allMemories.value.slice(start, start + perPage.value)
+watch(currentPage, async (page) => {
+  await memoryStore.fetchMemories(page)
 })
 
-const pageNumbers = computed(() => {
-  const pages = []
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    if (current > 3) pages.push('...')
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i)
-    if (current < total - 2) pages.push('...')
-    pages.push(total)
-  }
-  return pages
+onMounted(async () => {
+  await memoryStore.fetchMemories(currentPage.value)
 })
 
-watch(perPage, () => { currentPage.value = 1 })
+const paginatedMemories = computed(() => memoryStore.memories)
+const totalPages = computed(() => memoryStore.totalPages)
 
-const goToPage = (p) => {
-  if (typeof p === 'number' && p >= 1 && p <= totalPages.value) currentPage.value = p
-}
+/* Helpers */
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const truncate = (text, max = 100) => {
   if (!text) return ''
   return text.length > max ? text.slice(0, max) + '…' : text
 }
-const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-const isOwn = (memory) => memory.created_by === CURRENT_USER_ID
-const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('image/'))
+
+const formatDate = (iso) =>
+  new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+
+const isOwn = (memory) =>
+  memory.created_by === auth.user?.id
+
+const authorLabel = (memory) => {
+  if (isOwn(memory)) return 'You'
+  return vault.partnerName || 'Partner'
+}
+
+const primaryImage = (memory) =>
+  memory.media?.find((m) =>
+    m.file_type?.startsWith('image/')
+  )
+
+const goToPage = (p) => {
+  if (p >= 1 && p <= totalPages.value) {
+    currentPage.value = p
+  }
+}
+
 </script>
 
 <template>
@@ -95,7 +93,7 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
               <div>
                 <p class="mem-sub text-xs text-rose-400 uppercase tracking-widest mb-1">Your Vault</p>
                 <h1 class="mem-display text-5xl text-gray-900">Memories</h1>
-                <p class="mem-body text-sm text-gray-400 mt-2">{{ allMemories.length }} moments preserved</p>
+                <p class="mem-body text-sm text-gray-400 mt-2">{{ memoryStore.total || 0 }} moments preserved</p>
               </div>
 
               <!-- Per page selector -->
@@ -123,7 +121,7 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
           <!-- Top Pagination -->
           <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
             <p class="mem-body text-xs text-gray-400">
-              Page {{ currentPage }} of {{ totalPages }} &nbsp;·&nbsp; {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, allMemories.length) }} of {{ allMemories.length }}
+              Page {{ currentPage }} of {{ totalPages }} &nbsp;·&nbsp; {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, memoryStore.total || 0) }} of {{ memoryStore.total || 0 }} memories
             </p>
             <div class="flex items-center gap-1">
               <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
@@ -213,7 +211,7 @@ const primaryImage = (memory) => memory.media.find(m => m.file_type.startsWith('
           <!-- Bottom Pagination -->
           <div class="flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-gray-100">
             <p class="mem-body text-xs text-gray-400">
-              Showing {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, allMemories.length) }} of {{ allMemories.length }} memories
+              Showing {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, memoryStore.total || 0) }} of {{ memoryStore.total || 0 }} memories memories
             </p>
             <div class="flex items-center gap-1">
               <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
