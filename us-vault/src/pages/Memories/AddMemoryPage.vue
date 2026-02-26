@@ -104,7 +104,7 @@ const handleSubmit = async () => {
   title.value = ''; content.value = ''; removeMedia()
   isSubmitting.value = false
 }
-</script>
+</script> 
 
 <template>
   <InactivityOverlay>

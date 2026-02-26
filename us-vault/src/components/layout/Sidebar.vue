@@ -188,6 +188,14 @@
             <div v-if="isSidebarOpen && isActive('/memories')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
           </router-link>
 
+          <router-link to="/my-memories" :class="navClass('/my-memories')">
+            <div :class="iconWrap('/my-memories')">
+              <FolderHeart :size="16" />
+            </div>
+            <span v-if="isSidebarOpen" class="nav-label">My Memories</span>
+            <div v-if="isSidebarOpen && isActive('/my-memories')" class="ml-auto w-1.5 h-1.5 rounded-full bg-fuchsia-400"></div>
+          </router-link>
+
           <!-- Section: Vault -->
           <div v-if="isSidebarOpen" class="px-3 mt-5 mb-2">
             <span class="text-xs font-semibold uppercase tracking-widest" style="color: rgba(192,132,252,0.4); font-family:'DM Sans',sans-serif; font-size:0.65rem;">Vault</span>
@@ -293,7 +301,8 @@ import { getUnreadNotificationsCountApi } from '../../api/notifications'
 import {
   Menu, Home, HelpCircle, Plus, Sprout, FilePlus, Heart,
   Shield, Zap, Settings, ChevronsUpDown, LogOut, Bell, User,
-  Book, Bean
+  Book, Bean,
+  FolderHeart
 } from 'lucide-vue-next'
 
 const route  = useRoute()

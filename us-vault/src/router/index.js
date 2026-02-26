@@ -24,6 +24,7 @@ import SeedDetailPage from '../pages/Seed/SeedDetailPage.vue'
 import AddMemoryPage from '../pages/Memories/AddMemoryPage.vue'
 import MemoryDetailPage from '../pages/Memories/MemoryDetailPage.vue'
 import MemoryPage from '../pages/Memories/MemoryPage.vue'
+import MyMemoriesPage from '../pages/Memories/MyMemoriesPage.vue'
 
 // Vault
 import VaultPage from '../pages/Vault/VaultPage.vue'
@@ -68,6 +69,7 @@ const routes = [
 
   { path: '/memories', name: 'memories', component: MemoryPage,},
   { path: '/add-memory', name: 'add-memory', component: AddMemoryPage, },
+  { path: '/my-memories', name: 'my-memories', component: MyMemoriesPage, },
   { path: '/memories/:id', name: 'memory-detail', component: MemoryDetailPage },
 
   { path: '/journal', name: 'journal', component: JournalPage, },
