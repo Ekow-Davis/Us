@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { Edit2, Save, X, Plus, Trash2 } from 'lucide-vue-next'
+import { getMemoryApi, updateMemoryApi, deleteMemoryApi } from '../../api/memories'
+import { uploadMemoryMediaApi, deleteMemoryMediaApi } from '../../api/media'
 // import { useAuthStore } from '../../stores/authStore'
 // import { useVaultStore } from '../../stores/vaultStore'
 
@@ -53,13 +55,13 @@ const authorLabel = computed(() => isOwn.value ? 'You' : PARTNER_NAME)
 
 const canEdit = computed(() => {
   if (!memory.value || !isOwn.value) return false
-  
-  // Can edit if memory was created more than 8 hours ago
+
   const createdAt = new Date(memory.value.created_at)
   const now = new Date()
-  const hoursDiff = (now - createdAt) / (1000 * 60 * 60)
-  
-  return hoursDiff >= 8
+
+  const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
+
+  return hoursDiff <= 8
 })
 
 const hasChanges = computed(() => {
@@ -139,33 +141,29 @@ const handleSave = async () => {
     error.value = 'Title is required'
     return
   }
-  
+
   if (!editForm.value.content.trim()) {
     error.value = 'Content is required'
     return
   }
-  
+
   isSaving.value = true
   error.value = ''
-  
+
   try {
-    // Mock API call - replace with actual API
-    // await updateMemory(memory.value.id, {
-    //   title: editForm.value.title,
-    //   content: editForm.value.content,
-    //   media: editForm.value.media
-    // })
-    
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Update local state
-    memory.value.title = editForm.value.title
-    memory.value.content = editForm.value.content
-    memory.value.media = [...editForm.value.media]
-    
+    const res = await updateMemoryApi(memory.value.id, {
+      title: editForm.value.title,
+      content: editForm.value.content
+    })
+
+    memory.value = res.data
+
     isEditing.value = false
+
+    showToast('Memory updated successfully')
+
   } catch (err) {
-    error.value = err.message || 'Failed to save changes'
+    error.value = err?.response?.data?.detail || 'Editing window is closed.'
   } finally {
     isSaving.value = false
   }
@@ -173,40 +171,25 @@ const handleSave = async () => {
 
 const handleMediaSelect = async (event) => {
   const files = Array.from(event.target.files)
-  if (files.length === 0) return
-  
+  if (!files.length) return
+
   isUploadingMedia.value = true
   error.value = ''
-  
+
   try {
     for (const file of files) {
-      // Validate file type
-      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        throw new Error('Only image and video files are allowed')
-      }
-      
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('File size must be less than 10MB')
-      }
-      
-      // Mock upload - replace with actual upload
-      const uploadedMedia = {
-        id: `media-${Date.now()}`,
-        file_url: URL.createObjectURL(file),
-        file_type: file.type,
-        file_name: file.name
-      }
-      
-      editForm.value.media.push(uploadedMedia)
+      await uploadMemoryMediaApi(memory.value.id, file)
     }
+
+    // reload memory to get fresh media
+    await loadMemory(memory.value.id)
+
+    showToast('Media uploaded')
+
   } catch (err) {
-    error.value = err.message
+    error.value = err?.response?.data?.detail || 'Upload failed'
   } finally {
     isUploadingMedia.value = false
-    if (mediaInput.value) {
-      mediaInput.value.value = ''
-    }
   }
 }
 
@@ -241,14 +224,12 @@ const loadMemory = async (memoryId) => {
   isLoading.value = true
   isEditing.value = false
   error.value = ''
-  
+
   try {
-    await new Promise(resolve => setTimeout(resolve, 200))
-    
-    const found = ALL_MEMORIES.value.find(m => m.id === memoryId)
-    memory.value = found || null
+    const res = await getMemoryApi(memoryId)
+    memory.value = res.data
   } catch (err) {
-    console.error('Failed to load memory:', err)
+    console.error(err)
     memory.value = null
   } finally {
     isLoading.value = false

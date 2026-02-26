@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { getMyMemoriesApi } from '../../api/memories'
 // import { useAuthStore } from '../../stores/authStore'
 // import { useVaultStore } from '../../stores/vaultStore'
 
@@ -25,33 +26,27 @@ const currentPage = ref(1)
 const perPage = ref(9)
 const totalPages = ref(1)
 
-// ── Mock API ───────────────────────────────────────────────────────────────
-const fetchMyMemories = async (page = 1, size = 9) => {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  
-  // Mock data - only memories created by current user
-  const allMyMemories = [
-    { id: 'mem-001', vault_id: 'v1', created_by: 'user-001', title: 'The Night We Got Caught in the Rain', content: 'We ran from the café to the car and you were laughing so hard...', memory_date: '2025-02-10T19:30:00Z', created_at: '2025-02-10T19:30:00Z', is_seed: false, media: [{ id: 'm1', file_url: 'https://picsum.photos/seed/rain/800/500', file_type: 'image/jpeg' }] },
-    { id: 'mem-003', vault_id: 'v1', created_by: 'user-001', title: 'Museum Afternoon', content: 'You stood in front of that painting for eleven minutes...', memory_date: '2025-01-15T14:00:00Z', created_at: '2025-01-15T14:00:00Z', is_seed: false, media: [] },
-    { id: 'mem-005', vault_id: 'v1', created_by: 'user-001', title: 'New Year\'s at Home', content: 'We missed the countdown because we were watching that documentary...', memory_date: '2025-01-01T00:04:00Z', created_at: '2025-01-01T00:04:00Z', is_seed: false, media: [{ id: 'm5', file_url: 'https://picsum.photos/seed/newyear/800/500', file_type: 'image/jpeg' }] },
-    { id: 'mem-007', vault_id: 'v1', created_by: 'user-001', title: 'Learning to Make Your Grandmother\'s Recipe', content: 'You dictated it from memory. I wrote every word down...', memory_date: '2024-12-20T18:30:00Z', created_at: '2024-12-20T18:30:00Z', is_seed: false, media: [] },
-    { id: 'mem-009', vault_id: 'v1', created_by: 'user-001', title: 'Your First Work Presentation', content: 'You practiced it four times in front of me...', memory_date: '2024-11-30T09:00:00Z', created_at: '2024-11-30T09:00:00Z', is_seed: false, media: [] },
-    { id: 'mem-011', vault_id: 'v1', created_by: 'user-001', title: 'Late Night Conversations', content: 'We talked until 3am about everything...', memory_date: '2024-11-05T03:00:00Z', created_at: '2024-11-05T03:00:00Z', is_seed: true, media: [] },
-  ]
-  
-  const start = (page - 1) * size
-  const paginatedMemories = allMyMemories.slice(start, start + size)
-  
-  return {
-    items: paginatedMemories,
-    total: allMyMemories.length,
-    page,
-    page_size: size,
-    total_pages: Math.ceil(allMyMemories.length / size)
+// Stop looking here
+const fetchMyMemories = async () => {
+  isLoading.value = true
+
+  try {
+    const response = await getMyMemoriesApi(
+      currentPage.value,
+      perPage.value
+    )
+
+    myMemories.value = response.data.items
+    totalPages.value = response.data.total_pages
+
+  } catch (error) {
+    console.error('Failed to load memories:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
-// ── Computed ───────────────────────────────────────────────────────────────
+// ── Computed ─-
 const filteredMemories = computed(() => {
   let result = [...myMemories.value]
   
@@ -111,16 +106,18 @@ const pageNumbers = computed(() => {
 
 // ── Methods ────────────────────────────────────────────────────────────────
 const canEdit = (memory) => {
-  // Can edit if memory is older than 8 hours
   const createdAt = new Date(memory.created_at)
   const now = new Date()
-  const hoursDiff = (now - createdAt) / (1000 * 60 * 60)
-  return hoursDiff >= 8
+
+  const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
+
+  return hoursDiff <= 8
 }
 
 const goToPage = (page) => {
-  if (typeof page === 'number' && page >= 1 && page <= totalPagesComputed.value) {
+  if (typeof page === 'number' && page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    fetchMyMemories()
   }
 }
 
@@ -137,18 +134,9 @@ const formatDate = (iso) => {
   })
 }
 
-// ── Lifecycle ──────────────────────────────────────────────────────────────
-onMounted(async () => {
-  isLoading.value = true
-  try {
-    const data = await fetchMyMemories(currentPage.value, perPage.value)
-    myMemories.value = data.items
-    totalPages.value = data.total_pages
-  } catch (error) {
-    console.error('Failed to load memories:', error)
-  } finally {
-    isLoading.value = false
-  }
+// ── Lifecycle ──────────────
+onMounted(() => {
+  fetchMyMemories()
 })
 </script>
 
