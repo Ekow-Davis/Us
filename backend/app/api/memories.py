@@ -11,7 +11,7 @@ from app.models.vault_membership import VaultMembership
 from app.schemas.memory import MemoryCreate, MemoryUpdate, MemoryResponse
 from app.services.notification import create_notification
 
-router = APIRouter(prefix="/memories", tags=["Memories"])
+router = APIRouter(prefix="/memories", tags=["Memories"], redirect_slashes=False)
 
 def get_user_vault(db: Session, user_id):
     membership = db.query(VaultMembership).filter(
