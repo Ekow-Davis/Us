@@ -8,11 +8,11 @@ export const createMemoryApi = (data: {
   content: string
   memory_date: string
 }) => {
-  return api.post("/memories", data)
+  return api.post("/memories/", data)
 }
 
 export const listMemoriesApi = (page = 1, page_size = 10) => {
-  return api.get("/memories", {
+  return api.get("/memories/", {
     params: { page, page_size }
   })
 }

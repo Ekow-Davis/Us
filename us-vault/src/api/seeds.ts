@@ -9,7 +9,7 @@ export const getActiveSeedsApi = () =>
 
 // All seeds (paginated)
 export const getAllSeedsApi = (page = 1, pageSize = 10) =>
-  api.get("/seeds", {
+  api.get("/seeds/", {
     params: { page, page_size: pageSize }
   })
 
@@ -36,7 +36,7 @@ export const createSeedApi = (data: {
   content: string
   bloom_at: string
 }) =>
-  api.post("/seeds", data)
+  api.post("/seeds/", data)
 
 // Bloom seed
 export const bloomSeedApi = (seedId: string) =>
