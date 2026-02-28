@@ -3,6 +3,10 @@ import { ref, computed } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import { Flower, Flower2 } from 'lucide-vue-next'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useSeedStore } from '../../stores/seed'
+
+// Store handling
+const seedStore = useSeedStore()
 
 // ─── Form State ────────────────────────────────────────────────────────────────
 const title = ref('')
@@ -165,41 +169,37 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true
 
-  const seedPayload = {
-    title: title.value,
-    content: content.value,
-    bloom_at: bloomAt.value
-  }
+  try {
+    //  Step 1: Create seed
+    const newSeed = await seedStore.createSeed({
+      title: title.value,
+      content: content.value,
+      bloom_at: bloomAt.value
+    })
 
-  // Step 1: Create Seed
-  console.log('Creating seed:', seedPayload)
-  await new Promise(resolve => setTimeout(resolve, 1200))
-  const fakeSeedId = 'seed_' + Math.random().toString(36).substr(2, 9)
-  showToast('🌱 Seed planted! Adding media...')
+    showToast('🌱 Seed planted!')
 
-  // Step 2: Upload Media (if any)
-  if (mediaFile.value) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const mediaPayload = {
-        seed_id: fakeSeedId,
-        file: e.target.result
-      }
-      console.log('Uploading media for seed:', fakeSeedId, '| File type:', mediaFile.value.type, '| Size:', (mediaFile.value.size / 1024 / 1024).toFixed(2) + 'MB')
-      console.log('Media payload (truncated):', { seed_id: mediaPayload.seed_id, file: '[base64 data]' })
-      showToast('🌸 Seed fully planted! Your memory will bloom in time.')
+    //  Step 2: Upload media if exists
+    if (mediaFile.value) {
+      await seedStore.uploadMedia(newSeed.id, mediaFile.value)
+
+      showToast('🌸 Seed fully planted with media!')
     }
-    reader.readAsDataURL(mediaFile.value)
-  } else {
-    showToast('🌸 Seed planted! Your memory will bloom in time.')
-  }
 
-  // Reset
-  title.value = ''
-  content.value = ''
-  bloomAt.value = ''
-  removeMedia()
-  isSubmitting.value = false
+    // Reset form
+    title.value = ''
+    content.value = ''
+    bloomAt.value = ''
+    removeMedia()
+
+  } catch (err) {
+    showToast(
+      err?.response?.data?.detail || 'Failed to plant seed.',
+      'error'
+    )
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 

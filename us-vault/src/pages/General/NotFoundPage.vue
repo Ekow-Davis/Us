@@ -36,7 +36,7 @@ const goBack = () => {
         Recommended image: Vertical vine with bleeding heart flowers
       -->  
         <img 
-          src="../../../../images/bleeeding-heart-right.png" 
+          src="/public/images/bleeeding-heart-right.png" 
           alt="Bleeding heart vine decoration"
           class="h-full w-full object-cover object-right"
         />
@@ -64,7 +64,7 @@ const goBack = () => {
         Recommended image: Vertical vine with bleeding heart flowers (mirrored)
       -->  
         <img 
-          src="../../../../images/bleeeding-heart-right.png" 
+          src="/public/images/bleeeding-heart-right.png" 
           alt="Bleeding heart vine decoration"
           class="h-full w-full object-cover object-left"
         />
@@ -108,7 +108,7 @@ const goBack = () => {
           Recommended: Single bleeding heart flower or small cluster
         -->  
           <img 
-            src="../../../../images/bleeeding-heart-right.png" 
+            src="/public/images/bleeeding-heart-right.png" 
             alt="Bleeding heart flower"
             class="w-16 h-16 md:w-20 md:h-20 opacity-70"
           />
@@ -172,7 +172,7 @@ const goBack = () => {
           Recommended: Horizontal vine segment with 2-3 flowers
         -->  
           <img 
-            src="../../../../images/bleeeding-heart-right.png" 
+            src="/public/images/bleeeding-heart-right.png" 
             alt="Bleeding heart flowers"
             class="w-32 h-16 md:w-40 md:h-20 opacity-60"
           />

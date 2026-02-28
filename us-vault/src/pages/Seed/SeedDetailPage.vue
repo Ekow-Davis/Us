@@ -3,6 +3,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useSeedStore } from '../../stores/seed'
+import { onBeforeRouteLeave } from 'vue-router'
+
+const seedStore = useSeedStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -26,79 +30,17 @@ const editForm = ref({
 const mediaInput = ref(null)
 const isUploadingMedia = ref(false)
 
-// ── Mock API Calls ─────────────────────────────────────────────────────────
-const fetchSeed = async (id) => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Mock seed data
-  const mockSeeds = {
-    'seed-001': {
-      id: 'seed-001',
-      vault_id: 'v1',
-      created_by: 'user-001',
-      title: 'A Letter for Our First Year',
-      content: 'There are things I want to tell you a year from now, when we\'ve grown into something neither of us can fully predict yet. This is my message to future us, a reminder of how I felt today.',
-      bloom_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'scheduled',
-      media: []
-    },
-    'seed-002': {
-      id: 'seed-002',
-      vault_id: 'v1',
-      created_by: 'user-001',
-      title: 'What I Noticed First',
-      content: 'I\'ve been keeping this for a while. When the time comes, I hope you smile reading it. It\'s about all the small things that made me realize this was special.',
-      bloom_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'scheduled',
-      media: [
-        { id: 'sm1', file_url: 'https://picsum.photos/seed/first/800/500', file_type: 'image/jpeg' }
-      ]
-    }
-  }
-  
-  return mockSeeds[id] || null
-}
-
-const updateSeed = async (id, data) => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  
-  // Check if seed is within 24 hours of blooming
-  const bloomDate = new Date(seed.value.bloom_at)
-  const hoursUntilBloom = (bloomDate - new Date()) / (1000 * 60 * 60)
-  
-  if (hoursUntilBloom < 24 && hoursUntilBloom > 0) {
-    throw new Error('Cannot edit seed within 24 hours of blooming')
-  }
-  
-  // Mock successful update
-  return {
-    ...seed.value,
-    ...data,
-    updated_at: new Date().toISOString()
-  }
-}
-
-const uploadMedia = async (file) => {
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
-  // Mock media upload
-  return {
-    id: `media-${Date.now()}`,
-    file_url: URL.createObjectURL(file),
-    file_type: file.type,
-    file_name: file.name
-  }
-}
-
 // ── Computed ───────────────────────────────────────────────────────────────
 const hasChanges = computed(() => {
   if (!seed.value) return false
+
+  const originalMediaIds = (seed.value.media || []).map(m => m.id).sort()
+  const currentMediaIds = (editForm.value.media || []).map(m => m.id).sort()
+
   return (
     editForm.value.title !== seed.value.title ||
     editForm.value.content !== seed.value.content ||
-    editForm.value.media.length !== seed.value.media.length
+    JSON.stringify(originalMediaIds) !== JSON.stringify(currentMediaIds)
   )
 })
 
@@ -114,7 +56,8 @@ const hoursUntilBloom = computed(() => {
 })
 
 const canEdit = computed(() => {
-  return hoursUntilBloom.value === null || hoursUntilBloom.value >= 24
+  if (!seed.value) return false
+  return seed.value.can_edit !== false
 })
 
 const formatDate = (iso) => {
@@ -140,81 +83,77 @@ const initializeForm = () => {
 
 const handleMediaSelect = async (event) => {
   const files = Array.from(event.target.files)
-  if (files.length === 0) return
-  
+  if (!files.length) return
+
   isUploadingMedia.value = true
   error.value = null
-  
+
   try {
     for (const file of files) {
-      // Validate file type
+
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        throw new Error('Only image and video files are allowed')
+        throw new Error('Only image and video files allowed')
       }
-      
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('File size must be less than 10MB')
-      }
-      
-      const uploadedMedia = await uploadMedia(file)
-      editForm.value.media.push(uploadedMedia)
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const media = await seedStore.addSeedMedia(seedId, formData)
+
+      editForm.value.media.push(media)
     }
+
   } catch (err) {
-    error.value = err.message
+    error.value = err?.response?.data?.detail || err.message
   } finally {
     isUploadingMedia.value = false
-    if (mediaInput.value) {
-      mediaInput.value.value = ''
-    }
+    if (mediaInput.value) mediaInput.value.value = ''
   }
 }
 
-const removeMedia = (mediaId) => {
-  editForm.value.media = editForm.value.media.filter(m => m.id !== mediaId)
+const removeMedia = async (mediaId) => {
+  try {
+    await seedStore.deleteSeedMedia(mediaId)
+    editForm.value.media = editForm.value.media.filter(m => m.id !== mediaId)
+  } catch (err) {
+    error.value = err?.response?.data?.detail || 'Failed to delete media'
+  }
 }
 
 const handleSave = async () => {
-  if (!canEdit.value) {
-    error.value = 'Cannot edit seed within 24 hours of blooming'
-    return
-  }
-  
   if (!editForm.value.title.trim()) {
     error.value = 'Title is required'
     return
   }
-  
+
   if (!editForm.value.content.trim()) {
     error.value = 'Content is required'
     return
   }
-  
+
   isSaving.value = true
   error.value = null
   successMessage.value = null
-  
+
   try {
-    await updateSeed(seedId, {
+    await seedStore.updateSeed(seedId, {
       title: editForm.value.title,
-      content: editForm.value.content,
-      media: editForm.value.media
+      content: editForm.value.content
     })
-    
+
     successMessage.value = 'Seed updated successfully!'
-    
-    // Navigate back after a short delay
+
     setTimeout(() => {
       router.push('/my-seeds')
-    }, 1500)
+    }, 1200)
+
   } catch (err) {
-    error.value = err.message
-    
-    // If can't edit due to bloom time, redirect after showing error
-    if (err.message.includes('24 hours')) {
+    error.value = err?.response?.data?.detail || 'Update failed'
+
+    if (error.value?.toLowerCase().includes('edit window')) {
       setTimeout(() => {
         router.push('/my-seeds')
-      }, 2500)
+      }, 2000)
     }
   } finally {
     isSaving.value = false
@@ -235,23 +174,32 @@ const handleCancel = () => {
 onMounted(async () => {
   isLoading.value = true
   error.value = null
-  
+
   try {
-    const data = await fetchSeed(seedId)
-    
+    const data = await seedStore.fetchSeed(seedId)
+
     if (!data) {
       error.value = 'Seed not found'
       return
     }
-    
+
     seed.value = data
     initializeForm()
   } catch (err) {
-    error.value = 'Failed to load seed'
+    error.value = err?.response?.data?.detail || 'Failed to load seed'
   } finally {
     isLoading.value = false
   }
 })
+
+onBeforeRouteLeave((to, from, next) => {
+  if (hasChanges.value && canEdit.value) {
+    const confirmLeave = confirm('You have unsaved changes. Leave anyway?')
+    if (!confirmLeave) return next(false)
+  }
+  next()
+})
+
 </script>
 
 <template>
@@ -320,8 +268,32 @@ onMounted(async () => {
                 <!-- Status Badge -->
                 <div class="flex flex-col items-end gap-2">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold seed-body bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    Growing
+                    <span
+                      :class="[
+                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold seed-body border',
+                        seed.status === 'bloomed'
+                          ? 'bg-pink-50 text-pink-700 border-pink-200'
+                          : seed.is_ready
+                          ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      ]"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full"
+                            :class="seed.status === 'bloomed'
+                              ? 'bg-pink-400'
+                              : seed.is_ready
+                              ? 'bg-purple-400'
+                              : 'bg-emerald-400'">
+                      </span>
+
+                      {{
+                        seed.status === 'bloomed'
+                          ? 'Bloomed'
+                          : seed.is_ready
+                          ? 'Ready'
+                          : 'Growing'
+                      }}
+                    </span>
                   </span>
                   <p v-if="!canEdit" class="seed-body text-xs text-amber-600 font-semibold">
                     ⚠ Within 24h of bloom - editing disabled
@@ -419,6 +391,7 @@ onMounted(async () => {
                             class="w-full h-full object-cover"></video>
                       
                       <button v-if="canEdit"
+                              :disabled="isSaving"
                               @click="removeMedia(media.id)"
                               class="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center hover:bg-red-600">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

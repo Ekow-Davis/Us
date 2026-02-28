@@ -87,7 +87,7 @@ def login(
         key="refresh_token",
         value=str(refresh_token.id),
         httponly=True,
-        secure=False,  # set True for production if needed
+        secure=True,  # set False for development if needed
         samesite="lax",
         max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS
     )

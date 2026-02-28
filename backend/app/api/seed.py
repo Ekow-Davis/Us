@@ -170,9 +170,24 @@ def get_my_seeds(
     result = []
 
     for seed in seeds:
+
         is_ready = (
-            seed.status == "scheduled" and
-            now >= seed.bloom_at
+            seed.status == "scheduled"
+            and now >= seed.bloom_at
+        )
+
+        can_edit = (
+            seed.status == "scheduled"
+            and now <= seed.created_at + timedelta(hours=24)
+            and now < seed.bloom_at
+        )
+
+        can_delete = (
+            seed.status == "scheduled"
+            and (
+                now <= seed.created_at + timedelta(hours=24)
+                or now <= seed.bloom_at - timedelta(hours=24)
+            )
         )
 
         result.append({
@@ -182,6 +197,8 @@ def get_my_seeds(
             "created_at": seed.created_at,
             "status": seed.status,
             "is_ready": is_ready,
+            "can_edit": can_edit,
+            "can_delete": can_delete,
             "memory_id": seed.memory_id,
         })
 
@@ -192,7 +209,6 @@ def get_my_seeds(
         "page_size": page_size,
         "total_pages": ceil(total / page_size)
     }
-
 @router.get("/summary")
 def get_seed_summary(
     db: Session = Depends(get_db),

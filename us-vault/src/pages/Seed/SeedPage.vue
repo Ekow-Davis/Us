@@ -3,82 +3,20 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useSeedStore } from '../../stores/seed'
 
 const router = useRouter()
+const seedStore = useSeedStore()
 const CURRENT_USER_ID = 'user-001'
 
+const seedDetails = ref(null)
+
 // ── Mock API State ──────────────────────────────────────────────────────────
-const allSeeds = ref([])
-const activeSeedsData = ref([])
-const seedSummary = ref({
-  total: 0,
-  growing: 0,
-  ready: 0,
-  bloomed: 0
-})
-const isLoading = ref(true)
+const allSeeds = computed(() => seedStore.seeds)
 
-// ── Mock API Calls ──────────────────────────────────────────────────────────
-const fetchSeeds = async (page = 1, pageSize = 6) => {
-  // Mock GET /seeds/
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  return {
-    items: [
-      { id: 'seed-001', vault_id: 'v1', created_by: 'user-001', title: 'A Letter for Our First Year', content: 'There are things I want to tell you a year from now, when we\'ve grown into something neither of us can fully predict yet.', bloom_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null, media: [], view_count: 0 },
-      { id: 'seed-002', vault_id: 'v1', created_by: 'user-002', title: 'What I Noticed First', content: 'I\'ve been keeping this for a while. When the time comes, I hope you smile reading it.', bloom_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null, media: [], view_count: 0 },
-      { id: 'seed-003', vault_id: 'v1', created_by: 'user-001', title: 'The Dream I Had About Us', content: 'I wrote this the morning after I had the most vivid dream. I want you to have it when the time is right.', bloom_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), status: 'bloomed', memory_id: 'mem-003', media: [{ id: 'sm1', file_url: 'https://picsum.photos/seed/dream/800/500', file_type: 'image/jpeg' }], view_count: 2 },
-      { id: 'seed-004', vault_id: 'v1', created_by: 'user-002', title: 'Something I Never Said Out Loud', content: 'Words I\'ve been holding onto, waiting for the right moment. That moment is now.', bloom_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), status: 'bloomed', memory_id: 'mem-004', media: [], view_count: 2 },
-      { id: 'seed-005', vault_id: 'v1', created_by: 'user-001', title: 'Midwinter Note', content: 'Planted this on the coldest day of the year. Wanted something warm waiting for you on the other side of winter.', bloom_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null, media: [], view_count: 0 },
-      { id: 'seed-006', vault_id: 'v1', created_by: 'user-002', title: 'For a Rainy Day', content: 'This is for whenever you need it. I hope it finds you well, and I hope by then you remember this day fondly.', bloom_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null, media: [], view_count: 0 },
-      { id: 'seed-007', vault_id: 'v1', created_by: 'user-001', title: 'The Quiet Ones', content: 'Sometimes the best memories are the quiet ones. I\'ve been saving this for when we need a reminder.', bloom_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(), status: 'bloomed', memory_id: 'mem-007', media: [{ id: 'sm7', file_url: 'https://picsum.photos/seed/quiet/800/500', file_type: 'image/jpeg' }], view_count: 2 },
-      { id: 'seed-008', vault_id: 'v1', created_by: 'user-002', title: 'The First Time We Laughed Together', content: 'I still remember that moment like it was yesterday. Here\'s to many more laughs together.', bloom_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null, media: [{ id: 'sm8', file_url: 'https://picsum.photos/seed/laugh/800/500', file_type: 'image/jpeg' }], view_count: 0 },
-    ],
-    total: 8,
-    page: 1,
-    page_size: pageSize,
-    total_pages: Math.ceil(8 / pageSize)
-  }
-}
+const seedSummary = computed(() => seedStore.summary)
+const isLoading = computed(() => seedStore.isLoading)
 
-const fetchActiveSeeds = async () => {
-  // Mock GET /seeds/active
-  await new Promise(resolve => setTimeout(resolve, 200))
-  
-  return [
-    { id: 'seed-008', title: 'The First Time We Laughed Together', bloom_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), has_viewed: false, total_views: 0, status: 'ready', media: [] }
-  ]
-}
-
-const fetchSeedSummary = async () => {
-  // Mock GET /seeds/summary
-  await new Promise(resolve => setTimeout(resolve, 150))
-  
-  return {
-    total: 8,
-    growing: 4,
-    ready: 1,
-    bloomed: 3
-  }
-}
-
-const viewSeed = async (seedId) => {
-  // Mock POST /seeds/{seed_id}/bloom
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Update local state
-  const seed = allSeeds.value.find(s => s.id === seedId)
-  if (seed && seed.status === 'scheduled') {
-    seed.view_count++
-    if (seed.view_count >= 2) {
-      seed.status = 'bloomed'
-      seed.memory_id = `mem-${seedId}`
-    }
-  }
-  
-  // Remove from active seeds
-  activeSeedsData.value = activeSeedsData.value.filter(s => s.id !== seedId)
-}
 
 // ── Lifecycle Computed ──────────────────────────────────────────────────────
 const now = ref(new Date())
@@ -99,11 +37,8 @@ const bloomedSeeds = computed(() =>
 // ── Pagination ────────────────────────────────────────────────────────────────
 const perPage = ref(6)
 const currentPage = ref(1)
-const totalPages = computed(() => Math.ceil(allSeeds.value.length / perPage.value))
-const paginatedSeeds = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value
-  return allSeeds.value.slice(start, start + perPage.value)
-})
+const totalPages = computed(() => seedStore.totalPages)
+const paginatedSeeds = computed(() => allSeeds.paginatedSeeds)
 const pageNumbers = computed(() => {
   const pages = [], total = totalPages.value, current = currentPage.value
   if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i) }
@@ -117,7 +52,12 @@ const pageNumbers = computed(() => {
   return pages
 })
 watch(perPage, () => { currentPage.value = 1 })
-const goToPage = (p) => { if (typeof p === 'number' && p >= 1 && p <= totalPages.value) currentPage.value = p }
+const goToPage = async (p) => {
+  if (typeof p === 'number' && p >= 1 && p <= totalPages.value) {
+    currentPage.value = p
+    await seedStore.fetchSeeds(p, perPage.value)
+  }
+}
 
 // ── Ready Bloom Modal ───────────────────────────────────────────────────────
 const showReadyBloomModal = ref(false)
@@ -127,11 +67,18 @@ const hasBloomedCurrent = ref(false) // Track if current seed has been bloomed
 
 const currentReadySeed = computed(() => readySeeds.value[currentReadySeedIndex.value] || null)
 
-const openReadyBloom = (seed) => {
-  const idx = readySeeds.value.findIndex(s => s.id === seed.id)
-  currentReadySeedIndex.value = idx >= 0 ? idx : 0
-  hasBloomedCurrent.value = false // Reset bloom state
-  showReadyBloomModal.value = true
+const openReadyBloom = async (seed) => {
+  try {
+    seedDetails.value = await seedStore.fetchSeed(seed.id)
+
+    const idx = readySeeds.value.findIndex(s => s.id === seed.id)
+    currentReadySeedIndex.value = idx >= 0 ? idx : 0
+
+    hasBloomedCurrent.value = false
+    showReadyBloomModal.value = true
+  } catch (err) {
+    console.error('Failed to load seed details')
+  }
 }
 
 const closeReadyBloom = () => {
@@ -141,11 +88,24 @@ const closeReadyBloom = () => {
 
 const handleViewSeed = async () => {
   if (!currentReadySeed.value || isViewing.value) return
-  
+
   isViewing.value = true
-  await viewSeed(currentReadySeed.value.id)
-  hasBloomedCurrent.value = true // Mark as bloomed to show content
-  isViewing.value = false
+  try {
+    const res = await seedStore.bloomSeed(currentReadySeed.value.id)
+
+    hasBloomedCurrent.value = true
+
+    // Refresh everything after bloom
+    await Promise.all([
+      seedStore.fetchAllSeeds(currentPage.value, perPage.value),
+      seedStore.fetchActiveSeeds(),
+      seedStore.fetchSummary()
+    ])
+  } catch (err) {
+    alert(err?.response?.data?.detail || 'Failed to bloom seed')
+  } finally {
+    isViewing.value = false
+  }
 }
 
 const nextReadySeed = () => {
@@ -201,15 +161,11 @@ const bloomProgress = (seed) => {
 onMounted(async () => {
   isLoading.value = true
   try {
-    const [seedsData, activeSeedsResp, summaryData] = await Promise.all([
-      fetchSeeds(currentPage.value, perPage.value),
-      fetchActiveSeeds(),
-      fetchSeedSummary()
+    await Promise.all([
+      seedStore.fetchAllSeeds(currentPage.value, perPage.value),
+      seedStore.fetchActiveSeeds(),
+      seedStore.fetchSummary()
     ])
-    
-    allSeeds.value = seedsData.items
-    activeSeedsData.value = activeSeedsResp
-    seedSummary.value = summaryData
   } catch (error) {
     console.error('Failed to load seeds:', error)
   } finally {
@@ -545,11 +501,11 @@ onMounted(async () => {
 
                     <!-- Content -->
                     <div class="space-y-4">
-                      <p class="seed-body text-indigo-100 text-base md:text-lg leading-relaxed whitespace-pre-wrap">{{ currentReadySeed.content }}</p>
+                      <p class="seed-body text-indigo-100 text-base md:text-lg leading-relaxed whitespace-pre-wrap">{{ seedDetails?.content }}</p>
 
                       <!-- Media -->
-                      <div v-if="currentReadySeed.media && currentReadySeed.media.length > 0" class="grid grid-cols-1 gap-3 mt-6">
-                        <div v-for="media in currentReadySeed.media" :key="media.id" 
+                      <div v-if="seedDetails?.media && seedDetails?.media.length > 0" class="grid grid-cols-1 gap-3 mt-6">
+                        <div v-for="media in seedDetails?.media" :key="media.id" 
                             class="rounded-xl overflow-hidden border border-indigo-700/50">
                           <img v-if="media.file_type.startsWith('image/')" 
                               :src="media.file_url" 

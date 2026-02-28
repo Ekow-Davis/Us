@@ -3,85 +3,39 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useSeedStore } from '../../stores/seed'
 
+// ── Store & Router ───
+const seedStore = useSeedStore()
 const router = useRouter()
-const CURRENT_USER_ID = 'user-001'
+// const CURRENT_USER_ID = 'user-001'
 
-// ── Mock API State ──────────────────────────────────────────────────────────
-const mySeeds = ref([])
-const seedSummary = ref({
-  total: 0,
-  growing: 0,
-  ready: 0,
-  bloomed: 0
-})
-const isLoading = ref(true)
+// ── Mock API State ──────────
+const mySeeds = computed(() => seedStore.seeds)
+const seedSummary = computed(() => seedStore.summary)
+const isLoading = computed(() => seedStore.isLoading)
 
-// ── Mock API Calls ──────────────────────────────────────────────────────────
-const fetchMySeeds = async (page = 1, pageSize = 6) => {
-  // Mock GET /seeds/me
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  return {
-    items: [
-      { id: 'seed-001', vault_id: 'v1', created_by: 'user-001', title: 'A Letter for Our First Year', bloom_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null },
-      { id: 'seed-003', vault_id: 'v1', created_by: 'user-001', title: 'The Dream I Had About Us', bloom_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), status: 'bloomed', memory_id: 'mem-003' },
-      { id: 'seed-005', vault_id: 'v1', created_by: 'user-001', title: 'Midwinter Note', bloom_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null },
-      { id: 'seed-007', vault_id: 'v1', created_by: 'user-001', title: 'The Quiet Ones', bloom_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(), status: 'bloomed', memory_id: 'mem-007' },
-      { id: 'seed-009', vault_id: 'v1', created_by: 'user-001', title: 'Promise for the Future', bloom_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null },
-      { id: 'seed-010', vault_id: 'v1', created_by: 'user-001', title: 'Our First Adventure', bloom_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(), status: 'scheduled', memory_id: null },
-    ],
-    total: 6,
-    page: 1,
-    page_size: pageSize,
-    total_pages: Math.ceil(6 / pageSize)
-  }
-}
-
-const fetchSeedSummary = async () => {
-  // Mock GET /seeds/summary (but filtered for user's seeds)
-  await new Promise(resolve => setTimeout(resolve, 150))
-  
-  return {
-    total: 6,
-    growing: 3,
-    ready: 1,
-    bloomed: 2
-  }
-}
-
-const deleteSeed = async (seedId) => {
-  // Mock DELETE /seeds/{seed_id}
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // Remove from local state
-  mySeeds.value = mySeeds.value.filter(s => s.id !== seedId)
-}
-
-// ── Lifecycle Computed ──────────────────────────────────────────────────────
+// ── Lifecycle Computed ──────
 const now = ref(new Date())
 setInterval(() => { now.value = new Date() }, 30000) // Update every 30s
 
-const growingSeeds = computed(() => 
-  mySeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) > now.value)
-)
+// const growingSeeds = computed(() => 
+//   mySeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) > now.value)
+// )
 
-const readySeeds = computed(() => 
-  mySeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) <= now.value)
-)
+// const readySeeds = computed(() => 
+//   mySeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) <= now.value)
+// )
 
-const bloomedSeeds = computed(() => 
-  mySeeds.value.filter(s => s.status === 'bloomed')
-)
+// const bloomedSeeds = computed(() => 
+//   mySeeds.value.filter(s => s.status === 'bloomed')
+// )
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// ── Pagination ────────────────
 const perPage = ref(6)
 const currentPage = ref(1)
-const totalPages = computed(() => Math.ceil(mySeeds.value.length / perPage.value))
-const paginatedSeeds = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value
-  return mySeeds.value.slice(start, start + perPage.value)
-})
+const totalPages = computed(() => seedStore.totalPages)
+const paginatedSeeds = computed(() => { return mySeeds.value})
 const pageNumbers = computed(() => {
   const pages = [], total = totalPages.value, current = currentPage.value
   if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i) }
@@ -97,7 +51,7 @@ const pageNumbers = computed(() => {
 watch(perPage, () => { currentPage.value = 1 })
 const goToPage = (p) => { if (typeof p === 'number' && p >= 1 && p <= totalPages.value) currentPage.value = p }
 
-// ── Delete Confirmation ─────────────────────────────────────────────────────
+// ── Delete Confirmation ─────
 const showDeleteModal = ref(false)
 const seedToDelete = ref(null)
 const isDeleting = ref(false)
@@ -114,32 +68,35 @@ const cancelDelete = () => {
 
 const handleDelete = async () => {
   if (!seedToDelete.value || isDeleting.value) return
-  
+
   isDeleting.value = true
   try {
-    await deleteSeed(seedToDelete.value.id)
+    await seedStore.cancelSeed(seedToDelete.value.id)
+
+    await seedStore.fetchSummary()
+
     showDeleteModal.value = false
     seedToDelete.value = null
-  } catch (error) {
-    console.error('Failed to delete seed:', error)
+  } catch (err) {
+    alert(err?.response?.data?.detail || 'Cancel window expired.')
   } finally {
     isDeleting.value = false
   }
 }
 
-// ── Edit Seed ───────────────────────────────────────────────────────────────
+// ── Edit Seed ───────────────
 const editSeed = (seedId) => {
   router.push(`/seeds/edit/${seedId}`)
 }
 
-// ── Navigate to Memory ──────────────────────────────────────────────────────
+// ── Navigate to Memory ──────
 const viewMemory = (memoryId) => {
   if (memoryId) {
     router.push(`/memories/${memoryId}`)
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 const formatDateTime = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 
@@ -168,39 +125,38 @@ const bloomProgress = (seed) => {
 
 const canEdit = (seed) => {
   if (seed.status !== 'scheduled') return false
-  const editWindowEnd = new Date(seed.created_at).getTime() + (24 * 60 * 60 * 1000)
+
+  const nowTime = now.value.getTime()
+  const createdTime = new Date(seed.created_at).getTime()
   const bloomTime = new Date(seed.bloom_at).getTime()
-  return now.value.getTime() <= editWindowEnd || now.value.getTime() < bloomTime
+
+  const withinCreationWindow = nowTime <= createdTime + (24 * 60 * 60 * 1000)
+  const beforeBloom = nowTime < bloomTime
+
+  return withinCreationWindow && beforeBloom
 }
 
 const canDelete = (seed) => {
   if (seed.status !== 'scheduled') return false
+
+  const nowTime = now.value.getTime()
   const createdTime = new Date(seed.created_at).getTime()
   const bloomTime = new Date(seed.bloom_at).getTime()
-  const nowTime = now.value.getTime()
-  
+
   const withinCreationWindow = nowTime <= createdTime + (24 * 60 * 60 * 1000)
   const beforeBloomCutoff = nowTime <= bloomTime - (24 * 60 * 60 * 1000)
-  
+
   return withinCreationWindow || beforeBloomCutoff
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ──────────────
 onMounted(async () => {
   isLoading.value = true
-  try {
-    const [seedsData, summaryData] = await Promise.all([
-      fetchMySeeds(currentPage.value, perPage.value),
-      fetchSeedSummary()
-    ])
-    
-    mySeeds.value = seedsData.items
-    seedSummary.value = summaryData
-  } catch (error) {
-    console.error('Failed to load seeds:', error)
-  } finally {
-    isLoading.value = false
-  }
+  await Promise.all([
+    seedStore.fetchMySeeds(currentPage.value, perPage.value),
+    seedStore.fetchSummary()
+  ])
+  isLoading.value = false
 })
 </script>
 
