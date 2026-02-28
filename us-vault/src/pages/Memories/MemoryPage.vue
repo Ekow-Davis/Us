@@ -190,7 +190,7 @@ const goToPage = (p) => {
                 </p>
 
                 <!-- Media indicator chips -->
-                <div v-if="memory.media.length > 0 && !primaryImage(memory)" class="flex gap-1.5 mt-1">
+                <div v-if="(memory.media || []).length > 0 && !primaryImage(memory)" class="flex gap-1.5 mt-1">
                   <span v-for="m in memory.media" :key="m.id"
                         class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-xs text-gray-500 mem-body">
                     <svg v-if="m.file_type.startsWith('video')" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>

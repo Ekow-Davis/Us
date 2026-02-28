@@ -261,7 +261,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Image -->
-                <div v-if="memory.media.length > 0 && memory.media[0].file_type.startsWith('image/')" 
+                <div v-if="(memory.media || []).length > 0 && memory.media[0].file_type.startsWith('image/')" 
                      class="aspect-video overflow-hidden bg-slate-100">
                   <img 
                     :src="memory.media[0].file_url" 
