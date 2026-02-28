@@ -10,6 +10,7 @@ const vault = ref(null)
 const isLoading = ref(true)
 
 const auth = useAuthStore()
+const user = computed(() => auth.user)
 
 const loadVaultDetails = async () => {
   try {
@@ -170,7 +171,7 @@ onMounted(loadVaultDetails)
 
             <!-- Names -->
             <h1 class="vault-display text-4xl sm:text-5xl text-gray-900 mb-2">
-              {{ auth.display_name }}
+              {{ user.display_name }}
               <span class="text-purple-400 mx-3 text-3xl">✦</span>
               {{ vault.partner_name }}
             </h1>
@@ -224,11 +225,11 @@ onMounted(loadVaultDetails)
               <div class="flex flex-col items-center gap-3">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
                     style="background: linear-gradient(135deg, #db2777, #ec4899); box-shadow: 0 4px 20px rgba(219,39,119,0.35);">
-                  {{ initials(vault.created_by === auth.display_name ? auth.display_name : vault.partner_name) }}
+                  {{ initials(vault.created_by === user.display_name ? user.display_name : vault.partner_name) }}
                 </div>
                 <div class="text-center">
                   <p class="vault-display text-white text-lg">
-                    {{ vault.created_by === auth.display_name ? auth.display_name : vault.partner_name }}
+                    {{ vault.created_by === user.display_name ? user.display_name : vault.partner_name }}
                   </p>
                   <p class="vault-body text-pink-400 text-xs tracking-widest uppercase">Partner</p>
                 </div>
