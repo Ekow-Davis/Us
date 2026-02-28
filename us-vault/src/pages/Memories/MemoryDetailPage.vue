@@ -193,8 +193,34 @@ const handleMediaSelect = async (event) => {
   }
 }
 
-const removeMedia = (mediaId) => {
-  editForm.value.media = editForm.value.media.filter(m => m.id !== mediaId)
+const removeMedia = async (mediaId) => {
+  try {
+    await deleteMemoryMediaApi(mediaId)
+
+    await loadMemory(memory.value.id)
+
+    showToast('Media removed')
+
+  } catch (err) {
+    error.value = err?.response?.data?.detail || 'Cannot delete media'
+  }
+}
+
+const handleDelete = async () => {
+  if (!confirm('This will permanently withdraw this memory. Continue?')) {
+    return
+  }
+
+  try {
+    await deleteMemoryApi(memory.value.id)
+
+    showToast('Memory withdrawn')
+
+    router.push('/my-memories')
+
+  } catch (err) {
+    error.value = err?.response?.data?.detail || 'Delete window expired'
+  }
 }
 
 const toggleMute = () => {
@@ -210,6 +236,17 @@ const downloadMedia = (url, filename) => {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+}
+
+const toast = ref({
+  visible: false,
+  message: '',
+  type: 'success'
+})
+
+const showToast = (message, type = 'success') => {
+  toast.value = { visible: true, message, type }
+  setTimeout(() => toast.value.visible = false, 4000)
 }
 
 const formatFull = (iso) => new Date(iso).toLocaleDateString('en-US', {
@@ -347,6 +384,13 @@ onMounted(() => {
                       class="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition detail-body text-sm font-semibold">
                 <X :size="14" />
                 Cancel
+              </button>
+              <button 
+                v-if="canEdit"
+                @click="handleDelete"
+                class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition detail-body text-sm font-semibold">
+                <Trash2 :size="14" />
+                Delete
               </button>
               <button @click="handleSave"
                       :disabled="!hasChanges || isSaving"
@@ -594,7 +638,14 @@ onMounted(() => {
 
         </div>
       </div>
+      
+      <div v-if="toast.visible"
+          class="fixed bottom-6 right-6 px-6 py-3 rounded-xl shadow-lg text-white text-sm z-50"
+          :class="toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'">
+        {{ toast.message }}
+      </div>
     </Sidebar>
+    
   </InactivityOverlay>
 </template>
 
