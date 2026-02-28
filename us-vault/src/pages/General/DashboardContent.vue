@@ -6,7 +6,7 @@ import { Calendar } from 'lucide-vue-next';
 import { Clock } from 'lucide-vue-next';
 import FlowerFieldOverlay from './FlowerFieldOverlay.vue';
 import { getAllSeedsApi } from '../../api/seeds'
-import { getMemoriesApi } from '../../api/memories'
+import { listMemoriesApi } from '../../api/memories'
 
 // State
 const upcomingBlooms = ref([]);
@@ -38,7 +38,7 @@ const loadDashboardData = async () => {
   try {
     const [seedsRes, memoriesRes] = await Promise.all([
       getAllSeedsApi(),
-      getMemoriesApi({ page: 1, page_size: 5 })
+      listMemoriesApi({ page: 1, page_size: 5 })
     ])
 
     // Only scheduled seeds that haven’t bloomed yet
