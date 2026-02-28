@@ -55,7 +55,7 @@ watch(perPage, () => { currentPage.value = 1 })
 const goToPage = async (p) => {
   if (typeof p === 'number' && p >= 1 && p <= totalPages.value) {
     currentPage.value = p
-    await seedStore.fetchSeeds(p, perPage.value)
+    await seedStore.fetchAllSeeds(p, perPage.value)
   }
 }
 
