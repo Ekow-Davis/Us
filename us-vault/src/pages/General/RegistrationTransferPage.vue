@@ -263,7 +263,7 @@ const handleCreateOwn = async () => {
 
 // Handle Join Vault
 const handleJoinVault = async () => {
-  const code = vaultCode.value.join('').toUpperCase()
+  const code = vaultCode.value.join('')
 
   try {
     errorMessage.value = null
@@ -280,7 +280,7 @@ const handleJoinVault = async () => {
 
 // Code input handlers
 const handleCodeInput = (index, event) => {
-  const value = event.target.value.toUpperCase();
+  const value = event.target.value;
   
   if (value && index < 7) {
     codeInputs.value[index + 1]?.focus();
@@ -295,7 +295,7 @@ const handleKeyDown = (index, event) => {
 
 const handlePaste = (event) => {
   event.preventDefault();
-  const pastedData = event.clipboardData.getData('text').toUpperCase().slice(0, 8);
+  const pastedData = event.clipboardData.getData('text').slice(0, 8);
   
   for (let i = 0; i < pastedData.length; i++) {
     vaultCode.value[i] = pastedData[i];
