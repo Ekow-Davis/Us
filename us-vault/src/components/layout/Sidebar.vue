@@ -304,6 +304,7 @@ import {
   Book, Bean,
   FolderHeart
 } from 'lucide-vue-next'
+import { logoutApi } from '../../api/auth'
 
 import { useAuthStore } from '../../stores/auth'
 
@@ -324,11 +325,16 @@ const toggleSidebar     = () => { isSidebarOpen.value = !isSidebarOpen.value }
 const toggleProfileMenu = () => { isProfileMenuOpen.value = !isProfileMenuOpen.value }
 const closeProfileMenu  = () => { isProfileMenuOpen.value = false }
 
-const handleLogout = () => {
-  console.log('Logging out…')
-  localStorage.removeItem('token')
-  closeProfileMenu()
-  router.push('/')
+const handleLogout = async () => {
+  try {
+    await logoutApi()
+  } catch (error) {
+    console.error('Logout error:', error)
+  } finally {
+    localStorage.removeItem('token')
+    closeProfileMenu()
+    router.push('/')
+  }
 }
 
 const isActive = (path) => route.path === path || route.path.startsWith(path + '/')

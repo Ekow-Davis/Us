@@ -12,6 +12,21 @@ const isLoading = ref(true)
 const auth = useAuthStore()
 const user = computed(() => auth.user)
 
+const creatorName = computed(() => vault.value?.created_by || '')
+const partnerName = computed(() => vault.value?.partner_name || '')
+
+const otherPerson = computed(() => {
+  if (!vault.value || !user.value) return ''
+
+  // If logged in user is creator → other is partner
+  if (user.value.display_name === creatorName.value) {
+    return partnerName.value
+  }
+
+  // Otherwise logged in user is partner → other is creator
+  return creatorName.value
+})
+
 const loadVaultDetails = async () => {
   try {
     isLoading.value = true
@@ -171,9 +186,9 @@ onMounted(loadVaultDetails)
 
             <!-- Names -->
             <h1 class="vault-display text-4xl sm:text-5xl text-gray-900 mb-2">
-              {{ user.display_name }}
+              {{ creatorName }}
               <span class="text-purple-400 mx-3 text-3xl">✦</span>
-              {{ vault.partner_name }}
+              {{ otherPerson }}
             </h1>
             <p class="vault-body text-gray-500 text-sm tracking-widest uppercase mb-5">Our Shared Vault</p>
 
@@ -206,7 +221,7 @@ onMounted(loadVaultDetails)
                   {{ initials(vault.created_by) }}
                 </div>
                 <div class="text-center">
-                  <p class="vault-display text-white text-lg">{{ vault.created_by }}</p>
+                  <p class="vault-display text-white text-lg">{{ creatorName }}</p>
                   <p class="vault-body text-purple-400 text-xs tracking-widest uppercase">Created by</p>
                 </div>
               </div>
@@ -225,11 +240,11 @@ onMounted(loadVaultDetails)
               <div class="flex flex-col items-center gap-3">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
                     style="background: linear-gradient(135deg, #db2777, #ec4899); box-shadow: 0 4px 20px rgba(219,39,119,0.35);">
-                  {{ initials(vault.created_by === user.display_name ? user.display_name : vault.partner_name) }}
+                  {{ initials(otherPerson) }}
                 </div>
                 <div class="text-center">
                   <p class="vault-display text-white text-lg">
-                    {{ vault.created_by === user.display_name ? user.display_name : vault.partner_name }}
+                    {{ otherPerson }}
                   </p>
                   <p class="vault-body text-pink-400 text-xs tracking-widest uppercase">Partner</p>
                 </div>
