@@ -19,7 +19,7 @@ from fastapi import Request
 from slowapi.middleware import SlowAPIMiddleware
 
 
-app = FastAPI(title="Shared Memory Vault API")
+app = FastAPI(title="Shared Memory Vault API", redirect_slashes=False)
 
 app.add_middleware(SlowAPIMiddleware)
 

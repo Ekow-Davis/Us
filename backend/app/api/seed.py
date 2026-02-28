@@ -24,7 +24,7 @@ ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "video/mp4"}
 MAX_FILE_SIZE = 20 * 1024 * 1024
 
 
-router = APIRouter(prefix="/seeds", tags=["Seeds"], redirect_slashes=False)
+router = APIRouter(prefix="/seeds", tags=["Seeds"],)
 
 def get_user_vault(db: Session, user_id):
     membership = db.query(VaultMembership).filter(
