@@ -35,7 +35,7 @@ app.add_exception_handler(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://usvault.vercel.app", "http://localhost:5174"],
+    allow_origins=["https://usvault.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

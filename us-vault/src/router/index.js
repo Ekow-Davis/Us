@@ -55,29 +55,29 @@ const routes = [
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView, },
 
   // Protected routes (require authentication)
-  { path: '/registration-transfer', name: 'registration-transfer', component: RegistrationTransferView, },
+  { path: '/registration-transfer', name: 'registration-transfer', component: RegistrationTransferView,     meta: { requiresAuth: true } },
   { path: '/dashboard', name: 'dashboard', component: DashboardView, 
-    // meta: { requiresAuth: true } 
+    meta: { requiresAuth: true } 
   },
 
-  { path: '/add-seed', name: 'add-seed', component: AddSeedPage, },
-  { path: '/seeds', name: 'seeds', component: SeedPage, },
-  { path: '/my-seeds', name: 'my-seeds', component: MySeedsPage, },
-  { path: '/seeds/edit/:id', name: 'edit-seed', component: SeedDetailPage, props: true },  
+  { path: '/add-seed', name: 'add-seed', component: AddSeedPage,     meta: { requiresAuth: true } },
+  { path: '/seeds', name: 'seeds', component: SeedPage,     meta: { requiresAuth: true }  },
+  { path: '/my-seeds', name: 'my-seeds', component: MySeedsPage,     meta: { requiresAuth: true } },
+  { path: '/seeds/edit/:id', name: 'edit-seed', component: SeedDetailPage, props: true,      meta: { requiresAuth: true } },  
 
-  { path: '/vault', name: 'vault', component: VaultPage, },
+  { path: '/vault', name: 'vault', component: VaultPage,     meta: { requiresAuth: true }  },
 
-  { path: '/memories', name: 'memories', component: MemoryPage,},
-  { path: '/add-memory', name: 'add-memory', component: AddMemoryPage, },
-  { path: '/my-memories', name: 'my-memories', component: MyMemoriesPage, },
-  { path: '/memories/:id', name: 'memory-detail', component: MemoryDetailPage },
+  { path: '/memories', name: 'memories', component: MemoryPage,     meta: { requiresAuth: true } },
+  { path: '/add-memory', name: 'add-memory', component: AddMemoryPage,     meta: { requiresAuth: true }  },
+  { path: '/my-memories', name: 'my-memories', component: MyMemoriesPage,     meta: { requiresAuth: true }  },
+  { path: '/memories/:id', name: 'memory-detail', component: MemoryDetailPage,     meta: { requiresAuth: true }  },
 
-  { path: '/journal', name: 'journal', component: JournalPage, },
-  { path: '/signal', name: 'signal', component: SignalPage, },
+  { path: '/journal', name: 'journal', component: JournalPage,     meta: { requiresAuth: true }  },
+  { path: '/signal', name: 'signal', component: SignalPage,     meta: { requiresAuth: true }  },
 
-  { path: '/settings', name: 'settings', component: SettingsPage, },
-  { path: '/notifications', name: 'notifications', component: NotificationPage, },
-  { path: '/help', name: 'help', component: HelpPage, },
+  { path: '/settings', name: 'settings', component: SettingsPage,     meta: { requiresAuth: true } },
+  { path: '/notifications', name: 'notifications', component: NotificationPage,     meta: { requiresAuth: true } },
+  { path: '/help', name: 'help', component: HelpPage,     meta: { requiresAuth: true } },
 
   {
     path: '/:pathMatch(.*)*',

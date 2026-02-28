@@ -5,6 +5,8 @@ import { Sparkles } from 'lucide-vue-next';
 import { Calendar } from 'lucide-vue-next';
 import { Clock } from 'lucide-vue-next';
 import FlowerFieldOverlay from './FlowerFieldOverlay.vue';
+import { getAllSeedsApi } from '../../api/seeds'
+import { getMemoriesApi } from '../../api/memories'
 
 // State
 const upcomingBlooms = ref([]);
@@ -31,103 +33,31 @@ const flipHours = ref(false);
 const flipMinutes = ref(false);
 const flipSeconds = ref(false);
 
-// Mock data - replace with actual API calls
-const loadDashboardData = () => {
-  // Simulate API delay
-  setTimeout(() => {
-    // Mock blooms data (same structure as memories but with is_seed: true and bloom_date)
-    upcomingBlooms.value = [
-      {
-        id: "bloom-001",
-        vault_id: "vault-001",
-        created_by: "user-001",
-        title: "Birthday Surprise Gift",
-        content: "A special moment we've been waiting for",
-        memory_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
-        bloom_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: true,
-        media: []
-      },
-      {
-        id: "bloom-002",
-        vault_id: "vault-001",
-        created_by: "user-001",
-        title: "Summer Memory Lane",
-        content: "Revisiting our favorite summer moments",
-        memory_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        bloom_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: true,
-        media: []
-      },
-      {
-        id: "bloom-003",
-        vault_id: "vault-001",
-        created_by: "user-001",
-        title: "Birthday Wishes",
-        content: "A special birthday message",
-        memory_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        bloom_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: true,
-        media: []
-      }
-    ];
+// Api Calls
+const loadDashboardData = async () => {
+  try {
+    const [seedsRes, memoriesRes] = await Promise.all([
+      getAllSeedsApi(),
+      getMemoriesApi({ page: 1, page_size: 5 })
+    ])
 
-    // Mock memories data
-    recentMemories.value = [
-      {
-        id: "mem-001",
-        vault_id: "vault-001",
-        created_by: "user-001",
-        title: "Our First Date at the Beach",
-        content: "The sunset was beautiful that evening...",
-        memory_date: "2024-01-15T18:30:00Z",
-        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: true,
-        media: [
-          {
-            id: "media-001",
-            file_url: "https://example.com/photo.jpg",
-            file_type: "image/jpeg"
-          }
-        ]
-      },
-      {
-        id: "mem-002",
-        vault_id: "vault-001",
-        created_by: "user-002",
-        title: "Late Night Conversations",
-        content: "We talked for hours about everything and nothing...",
-        memory_date: "2024-01-08T23:45:00Z",
-        created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: true,
-        media: []
-      },
-      {
-        id: "mem-003",
-        vault_id: "vault-001",
-        created_by: "user-001",
-        title: "Morning Coffee Together",
-        content: "Started the day with your favorite brew",
-        memory_date: "2024-01-01T08:00:00Z",
-        created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-        edited_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-        is_seed: false,
-        media: []
-      }
-    ];
+    // Only scheduled seeds that haven’t bloomed yet
+    upcomingBlooms.value = seedsRes.items
+      .filter(seed => seed.status === 'scheduled')
+      .sort((a, b) => new Date(a.bloom_at) - new Date(b.bloom_at))
 
-    // Check for signals
-    signalCount.value = 0; // Change to test flower overlay
-  }, 800);
-};
+    // Recent memories sorted newest first
+    recentMemories.value = memoriesRes.items
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 5)
+
+    // Optional: if you later implement signals
+    signalCount.value = 0
+
+  } catch (err) {
+    console.error('Dashboard load failed:', err)
+  }
+}
 
 // Computed
 const primaryBloom = computed(() => upcomingBlooms.value[0] || null);
@@ -143,7 +73,7 @@ const updateCountdown = () => {
   }
 
   const now = new Date();
-  const bloomDate = new Date(primaryBloom.value.bloom_date);
+  const bloomDate = new Date(primaryBloom.value.bloom_at);
   const diff = bloomDate - now;
 
   if (diff <= 0) {
@@ -247,27 +177,16 @@ const navigateToMemory = (memoryId) => {
 let countdownInterval = null;
 
 // Lifecycle
-onMounted(() => {
-  loadDashboardData();
-  
-  // Update countdown every second
+onMounted(async () => {
+  await loadDashboardData()
+
   countdownInterval = setInterval(() => {
-    currentTime.value = new Date();
-    updateCountdown();
-  }, 1000);
-  
-  // Initial countdown
-  setTimeout(() => {
-    updateCountdown();
-  }, 1000);
-  
-  // Check for signals after data loads
-  setTimeout(() => {
-    if (signalCount.value > 0) {
-      showFlowers.value = true;
-    }
-  }, 1200);
-});
+    currentTime.value = new Date()
+    updateCountdown()
+  }, 1000)
+
+  updateCountdown()
+})
 
 onUnmounted(() => {
   if (countdownInterval) {
@@ -391,7 +310,7 @@ onUnmounted(() => {
                 <div class="flex items-start justify-between mb-6">
                   <div class="flex-1">
                     <h3 class="text-2xl font-semibold text-gray-900 mb-2">{{ primaryBloom.title }}</h3>
-                    <p class="text-sm text-gray-500">{{ formatDate(primaryBloom.bloom_date) }}</p>
+                    <p class="text-sm text-gray-500">{{ formatDate(primaryBloom.bloom_at) }}</p>
                   </div>
                   
                   <!-- Heart Loading Animation -->
@@ -413,9 +332,9 @@ onUnmounted(() => {
                       <g clip-path="url(#heartClip)">
                         <rect 
                           x="0" 
-                          :y="100 - getBloomProgress(primaryBloom.bloom_date)" 
+                          :y="100 - getBloomProgress(primaryBloom.bloom_at)" 
                           width="100" 
-                          :height="getBloomProgress(primaryBloom.bloom_date)" 
+                          :height="getBloomProgress(primaryBloom.bloom_at)" 
                           fill="url(#heartGradient)"
                         />
                       </g>
@@ -429,7 +348,7 @@ onUnmounted(() => {
                     </svg>
                     
                     <div class="absolute inset-0 flex items-center justify-center">
-                      <span class="text-xs font-bold text-purple-700">{{ Math.round(getBloomProgress(primaryBloom.bloom_date)) }}%</span>
+                      <span class="text-xs font-bold text-purple-700">{{ Math.round(getBloomProgress(primaryBloom.bloom_at)) }}%</span>
                     </div>
                   </div>
                 </div>
@@ -437,7 +356,7 @@ onUnmounted(() => {
                 <div class="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                   <div class="flex items-center gap-2">
                     <Clock :size="16" class="text-purple-600" />
-                    <span class="text-sm font-medium text-purple-900">Blooms in {{ getCountdown(primaryBloom.bloom_date) }}</span>
+                    <span class="text-sm font-medium text-purple-900">Blooms in {{ getCountdown(primaryBloom.bloom_at) }}</span>
                   </div>
                 </div>
               </div>
@@ -462,7 +381,7 @@ onUnmounted(() => {
                 class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <span class="text-sm font-medium text-gray-700">{{ bloom.title }}</span>
-                <span class="text-xs text-gray-500">{{ formatDate(bloom.bloom_date) }}</span>
+                <span class="text-xs text-gray-500">{{ formatDate(bloom.bloom_at) }}</span>
               </div>
             </div>
           </div>
