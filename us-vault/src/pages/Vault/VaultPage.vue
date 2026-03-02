@@ -18,13 +18,14 @@ const partnerName = computed(() => vault.value?.partner_name || '')
 const otherPerson = computed(() => {
   if (!vault.value || !user.value) return ''
 
-  // If logged in user is creator → other is partner
-  if (user.value.display_name === creatorName.value) {
-    return partnerName.value
+  // If backend returned same name twice,
+  // it means logged in user is the partner.
+  if (creatorName.value === partnerName.value) {
+    return user.value.display_name
   }
 
-  // Otherwise logged in user is partner → other is creator
-  return creatorName.value
+  // Otherwise backend already gave correct partner
+  return partnerName.value
 })
 
 const loadVaultDetails = async () => {
