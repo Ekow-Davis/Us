@@ -522,7 +522,7 @@ onMounted(async () => {
                     <!-- View Memory CTA -->
                     <div class="mt-8 text-center">
                       <p class="seed-body text-indigo-300 text-sm mb-4">This seed has bloomed into a memory</p>
-                      <button @click="viewMemory(currentReadySeed.memory_id || `mem-${currentReadySeed.id}`)"
+                      <button @click="viewMemory(currentReadySeed.memory_id || `${currentReadySeed.id}`)"
                               class="px-6 py-2.5 rounded-xl bg-linear-to-r from-pink-600 to-rose-600 text-white font-semibold seed-body hover:from-pink-500 hover:to-rose-500 transition-all shadow-lg">
                         View in Memories
                       </button>

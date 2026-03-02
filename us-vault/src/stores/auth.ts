@@ -5,6 +5,7 @@ import {
   getMeApi,
   logoutApi
 } from "../api/auth"
+import { useVaultStore } from "./vault";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -19,6 +20,9 @@ export const useAuthStore = defineStore("auth", {
       this.accessToken = res.data.access_token
 
       await this.fetchUser()
+
+      const vaultStore = useVaultStore()
+      await vaultStore.fetchVault()
     },
 
     async fetchUser() {
@@ -42,6 +46,10 @@ export const useAuthStore = defineStore("auth", {
       await logoutApi()
       this.accessToken = null
       this.user = null
+
+      const vaultStore = useVaultStore()
+      vaultStore.resetVault()
+      
     },
 
     async initialize() {
@@ -49,6 +57,9 @@ export const useAuthStore = defineStore("auth", {
         const res = await refreshApi()
         this.accessToken = res.data.access_token
         await this.fetchUser()
+
+        const vaultStore = useVaultStore()
+        await vaultStore.fetchVault()
       } catch {
         // silent fail — user not logged in
       } finally {

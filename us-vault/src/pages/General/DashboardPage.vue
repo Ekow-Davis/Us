@@ -1,33 +1,37 @@
 <script setup>
 import FlowerFieldOverlay from "./FlowerFieldOverlay.vue"
-
 import Sidebar from "../../components/layout/Sidebar.vue"
+import InactivityOverlay from "../../components/layout/InactivityOverlay.vue"
 import DashboardContent from "./DashboardContent.vue"
-
 import { onMounted } from "vue"
 import { useSignalStore } from "../../stores/signal"
 
-const signal = useSignalStore()
+const signalStore = useSignalStore()
 
 onMounted(() => {
-  signal.fetchUnreadCount()
+  signalStore.fetchUnreadCount()
 })
 </script>
 
 <template>
-  <Sidebar>
-    <div class="dashboard">
-    <DashboardContent />
-
-    <FlowerFieldOverlay 
-      v-if="signal.unreadCount > 0" 
-      :signal-count="signal.unreadCount" 
-    />
-  </div>
-  </Sidebar>
-  
+  <InactivityOverlay>
+    <Sidebar>
+      <div class="dashboard">
+        <DashboardContent />
+        
+        <!-- Use displayCount instead of unreadCount so it doesn't disappear during animation -->
+        <FlowerFieldOverlay 
+          v-if="signalStore.displayCount > 0" 
+          :signal-count="signalStore.displayCount" 
+        />
+      </div>
+    </Sidebar>
+  </InactivityOverlay>
 </template>
 
 <style scoped>
-
+.dashboard {
+  position: relative;
+  min-height: 100vh;
+}
 </style>

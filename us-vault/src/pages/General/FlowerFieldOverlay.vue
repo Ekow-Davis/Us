@@ -1,6 +1,6 @@
 <template>
   <div v-if="visible" class="overlay">
-    <div class="close-btn" @click="closeEarly">✕</div>
+    <div class="close-btn" @click="closeOverlay">✕</div>
 
     <div class="ground">
       <div
@@ -26,6 +26,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
+import { useSignalStore } from "../../stores/signal"
 
 const props = defineProps({
   signalCount: {
@@ -35,24 +36,29 @@ const props = defineProps({
   }
 })
 
+const signalStore = useSignalStore()
+
 const visible = ref(true)
 const isAnimating = ref(false)
 
-const closeEarly = () => {
+const closeOverlay = async () => {
   visible.value = false
+  
+  // Mark signals as seen when overlay closes
+  await signalStore.markAsSeen()
 }
 
-onMounted(async () => {
-  // Simulate API delay
-  setTimeout(() => {
-    console.log(`Signal count received: ${props.signalCount}`)
-    console.log(`Rendering ${props.signalCount} flowers`)
-  }, 1500)
-
+onMounted(() => {
   // Start animation after a brief delay
   setTimeout(() => {
     isAnimating.value = true
-  }, 100)
+  }, 50)
+  
+  // Auto-close after animation completes (optional)
+  // Uncomment if you want it to auto-close after 12 seconds
+  // setTimeout(() => {
+  //   closeOverlay()
+  // }, 12000)
 })
 </script>
 

@@ -84,6 +84,8 @@ export const useSeedStore = defineStore("seed", {
         ...res.data,
         media: res.data.media ?? []
       }
+
+      return this.currentSeed
     },
 
     /* CREATE */

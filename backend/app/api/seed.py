@@ -209,6 +209,8 @@ def get_my_seeds(
         "page_size": page_size,
         "total_pages": ceil(total / page_size)
     }
+
+
 @router.get("/summary")
 def get_seed_summary(
     db: Session = Depends(get_db),
@@ -274,6 +276,19 @@ def get_seed_details(
 
     viewed_user_ids = {v.user_id for v in views}
 
+    now = datetime.now(timezone.utc)
+
+    is_ready = (
+        seed.status == "scheduled"
+        and now >= seed.bloom_at
+    )
+
+    can_edit = (
+        seed.status == "scheduled"
+        and now <= seed.created_at + timedelta(hours=24)
+        and now < seed.bloom_at
+    )
+
     # Media visibility rule
     if seed.created_by == current_user.id:
         media_list = [
@@ -305,6 +320,8 @@ def get_seed_details(
         "created_at": seed.created_at,
         "status": seed.status,
         "view_count": len(viewed_user_ids),
+        "is_ready": is_ready,
+        "can_edit": can_edit,
         "media": media_list,
         "has_viewed": current_user.id in viewed_user_ids
     }

@@ -1,24 +1,18 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
+import { useJournalStore } from '../../stores/journal'
 
-import {
-  createJournalApi, updateJournalApi, deleteJournalApi, 
-  convertJournalApi, getPrivateJournalsApi, getSharedJournalsApi
-} from "../../api/journal"
-
-import { onMounted } from "vue"
+const journalStore = useJournalStore()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const activeTab = ref('private') // 'private' | 'shared'
 const view = ref('list') // 'list' | 'editor' | 'reader'
-const notebooks = ref([])
 
 const currentNotebook = ref(null)
 const editorContent = ref('')
 const editorTitle = ref('')
-const isSaving = ref(false)
 const showNewNotebook = ref(false)
 const newNotebookTitle = ref('')
 const showDeleteConfirm = ref(false)
@@ -29,31 +23,16 @@ const showConvertConfirm = ref(false)
 const notebookToConvert = ref(null)
 
 // ── Computed ──────────────────────────────────────────────────────────────────
-const fetchJournals = async () => {
-  try {
-    if (activeTab.value === "private") {
-      const res = await getPrivateJournalsApi(currentPage.value, pageSize)
-      notebooks.value = res.data.items
-    } else {
-      const res = await getSharedJournalsApi(currentPage.value, pageSize)
-      notebooks.value = res.data.items
-    }
-  } catch (err) {
-    console.error("Failed to fetch journals")
-  }
-}
-
-onMounted(fetchJournals)
-
-watch(activeTab, async () => {
-  view.value = "list"
-  currentNotebook.value = null
-  await fetchJournals()
+const notebooks = computed(() => {
+  return activeTab.value === 'private' 
+    ? journalStore.privateJournals 
+    : journalStore.sharedJournals
 })
 
-const filteredNotebooks = computed(() =>
-  notebooks.value.filter(nb => nb.visibility === activeTab.value)
-)
+const isLoading = computed(() => journalStore.isLoading)
+const isSaving = computed(() => journalStore.isSaving)
+
+const filteredNotebooks = computed(() => notebooks.value)
 
 const breadcrumbs = computed(() => {
   const crumbs = [{ label: 'Journals', action: () => { view.value = 'list'; currentNotebook.value = null } }]
@@ -71,22 +50,46 @@ const isEdited = computed(() => {
   return editorTitle.value !== currentNotebook.value.title || editorContent.value !== currentNotebook.value.content
 })
 
+// ── API Calls ─────────────────────────────────────────────────────────────────
+const fetchJournals = async () => {
+  try {
+    if (activeTab.value === "private") {
+      await journalStore.fetchPrivateJournals(1, 10)
+    } else {
+      await journalStore.fetchSharedJournals(1, 10)
+    }
+  } catch (err) {
+    console.error("Failed to fetch journals:", err)
+  }
+}
+
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+onMounted(() => {
+  fetchJournals()
+})
+
+// Watch tab changes
+watch(activeTab, async () => {
+  view.value = "list"
+  currentNotebook.value = null
+  await fetchJournals()
+})
+
 // ── Markdown helpers ──────────────────────────────────────────────────────────
 const renderMarkdown = (text) => {
   if (!text) return ''
   return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')           // **bold**
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')                       // *italic*
-    .replace(/~~(.+?)~~/g, '<del>$1</del>')                     // ~~strikethrough~~
-    .replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>')       // ### h3
-    .replace(/^## (.+)$/gm, '<h2 class="md-h2">$1</h2>')        // ## h2
-    .replace(/^# (.+)$/gm, '<h1 class="md-h1">$1</h1>')         // # h1
-    .replace(/^- (.+)$/gm, '<li class="md-li">$1</li>')         // - list
-    .replace(/^---$/gm, '<hr class="md-hr"/>')                  // --- divider
-    .replace(/\n/g, '<br/>')                                    // line breaks
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/~~(.+?)~~/g, '<del>$1</del>')
+    .replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="md-h2">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="md-h1">$1</h1>')
+    .replace(/^- (.+)$/gm, '<li class="md-li">$1</li>')
+    .replace(/^---$/gm, '<hr class="md-hr"/>')
+    .replace(/\n/g, '<br/>')
 }
 
-// Render with faint markers visible (for editor preview)
 const renderMarkdownWithMarkers = (text) => {
   if (!text) return ''
   return text
@@ -152,55 +155,46 @@ const openNotebook = (notebook) => {
   editorTitle.value = notebook.title
   editorContent.value = notebook.content
   view.value = notebook.visibility === 'private' ? 'editor' : 'reader'
+  journalStore.setCurrentJournal(notebook)
 }
 
 const createNotebook = async () => {
   if (!newNotebookTitle.value.trim()) return
 
   try {
-    const res = await createJournalApi({
+    const newJournal = await journalStore.createJournal({
       title: newNotebookTitle.value,
       content: "express what you wish",
       visibility: "private"
     })
 
-    notebooks.value.unshift(res.data)
-
     showNewNotebook.value = false
     newNotebookTitle.value = ""
 
-    openNotebook(res.data)
+    openNotebook(newJournal)
   } catch (err) {
-    console.error("Failed to create journal")
+    console.error("Failed to create journal:", err)
   }
 }
 
 const saveNotebook = async () => {
   if (!currentNotebook.value) return
 
-  isSaving.value = true
-
   try {
-    const res = await updateJournalApi(currentNotebook.value.id, {
+    const updated = await journalStore.updateJournal(currentNotebook.value.id, {
       title: editorTitle.value,
       content: editorContent.value
     })
 
-    const idx = notebooks.value.findIndex(nb => nb.id === currentNotebook.value.id)
-    if (idx !== -1) {
-      notebooks.value[idx] = res.data
-      currentNotebook.value = res.data
-    }
+    currentNotebook.value = updated
   } catch (err) {
-    console.error("Failed to update journal")
-  } finally {
-    isSaving.value = false
+    console.error("Failed to update journal:", err)
   }
 }
 
 const shareNotebook = async (notebook) => {
   try {
-    await updateJournalApi(notebook.id, {
+    await journalStore.updateJournal(notebook.id, {
       visibility: "shared"
     })
 
@@ -208,55 +202,41 @@ const shareNotebook = async (notebook) => {
 
     showShareConfirm.value = false
     notebookToShare.value = null
-
     view.value = "list"
     currentNotebook.value = null
-
   } catch (err) {
-    console.error("Failed to share journal")
+    console.error("Failed to share journal:", err)
   }
 }
 
 const deleteNotebook = async (notebook) => {
   try {
-    await deleteJournalApi(notebook.id)
-
-    notebooks.value = notebooks.value.filter(nb => nb.id !== notebook.id)
+    await journalStore.deleteJournal(notebook.id)
 
     showDeleteConfirm.value = false
     notebookToDelete.value = null
-
     view.value = "list"
     currentNotebook.value = null
-
   } catch (err) {
-    console.error("Failed to delete journal")
+    console.error("Failed to delete journal:", err)
   }
 }
 
 const convertToMemory = async (notebook) => {
   try {
-    await convertJournalApi(notebook.id)
-
+    await journalStore.convertToMemory(notebook.id)
     await fetchJournals()
 
     showConvertConfirm.value = false
     notebookToConvert.value = null
-
   } catch (err) {
-    console.error("Failed to convert journal")
+    console.error("Failed to convert journal:", err)
   }
 }
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 const truncate = (text, max = 80) => !text ? '' : text.length > max ? text.slice(0, max) + '…' : text
 const stripMarkdown = (text) => text.replace(/[*#~\-_]/g, '').replace(/\n/g, ' ')
-
-// ── Switch tabs ───────────────────────────────────────────────────────────────
-watch(activeTab, () => {
-  view.value = 'list'
-  currentNotebook.value = null
-})
 </script>
 
 <template>
@@ -271,7 +251,6 @@ watch(activeTab, () => {
       <div class="pointer-events-none select-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div class="absolute top-0 right-0 w-80 h-80 rounded-full opacity-20" style="background:radial-gradient(circle,#ddd6fe 0%,transparent 70%);"></div>
         <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-15" style="background:radial-gradient(circle,#fce7f3 0%,transparent 70%);"></div>
-        <!-- Subtle ink blot top-left -->
         <svg class="absolute top-12 left-8 w-32 opacity-[0.04]" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="40" fill="#7c3aed"/>
           <circle cx="30" cy="40" r="15" fill="#a855f7"/>
@@ -280,11 +259,11 @@ watch(activeTab, () => {
       </div>
 
       <!-- Content -->
-      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 py-10">
+      <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-10">
 
         <!-- Breadcrumbs -->
-        <div class="flex items-center gap-2 mb-6">
-          <div v-for="(crumb, idx) in breadcrumbs" :key="idx">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="flex gap-1" v-for="(crumb, idx) in breadcrumbs" :key="idx">
             <button v-if="crumb.action" @click="crumb.action"
                     class="journal-breadcrumb journal-breadcrumb--link">
               {{ crumb.label }}
@@ -294,8 +273,20 @@ watch(activeTab, () => {
           </div>
         </div>
 
+        <!-- Loading State -->
+        <div v-if="isLoading && view === 'list'" class="flex items-center justify-center min-h-[400px]">
+          <div class="flex flex-col items-center gap-3">
+            <div class="flex gap-1">
+              <span class="w-2 h-2 rounded-full bg-purple-400 loading-dot" style="animation-delay:0s"></span>
+              <span class="w-2 h-2 rounded-full bg-purple-400 loading-dot" style="animation-delay:0.2s"></span>
+              <span class="w-2 h-2 rounded-full bg-purple-400 loading-dot" style="animation-delay:0.4s"></span>
+            </div>
+            <p class="journal-body text-sm text-purple-400 tracking-wide">Loading journals…</p>
+          </div>
+        </div>
+
         <!-- ══════════════════ LIST VIEW ══════════════════ -->
-        <div v-if="view === 'list'">
+        <div v-else-if="view === 'list'">
 
           <!-- Header -->
           <div class="mb-8">
@@ -528,6 +519,423 @@ watch(activeTab, () => {
   </InactivityOverlay>
 
 </template>
+
+<!-- <style scoped>
+.journal-page {
+  background: linear-gradient(160deg, #faf5ff 0%, #ffffff 50%, #f8f9ff 100%);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Typography */
+.journal-display { font-family: 'Crimson Pro', Georgia, serif; font-size: 2.5rem; font-weight: 600; color: #1e293b; line-height: 1.2; }
+.journal-sub { font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #9333ea; margin-bottom: 0.25rem; }
+.journal-body { font-family: 'DM Sans', sans-serif; }
+
+/* Breadcrumbs */
+.journal-breadcrumb {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+}
+.journal-breadcrumb--link {
+  color: #7c3aed;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.journal-breadcrumb--link:hover {
+  color: #a855f7;
+}
+
+/* Buttons */
+.journal-btn {
+  font-family: 'DM Sans', sans-serif;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.journal-btn--primary {
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  color: white;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+}
+.journal-btn--primary:hover { background: linear-gradient(135deg, #6d28d9, #7e22ce); }
+.journal-btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.journal-btn--secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+.journal-btn--secondary:hover { background: #e5e7eb; }
+.journal-btn--ghost {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+.journal-btn--ghost:hover { background: #f9fafb; }
+.journal-btn--danger {
+  background: #ef4444;
+  color: white;
+}
+.journal-btn--danger:hover { background: #dc2626; }
+.journal-btn--sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+}
+
+/* Tabs */
+.journal-tab {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+}
+.journal-tab:hover { background: #f1f5f9; color: #475569; }
+.journal-tab--active {
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  color: white;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+}
+
+/* Cards */
+.journal-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: cardReveal 0.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+.journal-card:hover {
+  box-shadow: 0 8px 24px rgba(124,58,237,0.1);
+  transform: translateY(-2px);
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.journal-card-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.journal-card-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.journal-card-date {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.journal-card-preview {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.journal-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.journal-action-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.journal-action-btn--convert {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+.journal-action-btn--convert:hover { background: #fef3c7; color: #d97706; }
+
+.journal-action-btn--share {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+.journal-action-btn--share:hover { background: #bfdbfe; color: #2563eb; }
+
+.journal-action-btn--delete {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.journal-action-btn--delete:hover { background: #fecaca; color: #dc2626; }
+
+/* Editor */
+.journal-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.journal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.toolbar-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.toolbar-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.journal-editor-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  padding: 1.25rem;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  background: white;
+  transition: border 0.15s ease;
+}
+.journal-editor-title:focus {
+  outline: none;
+  border-color: #c084fc;
+}
+
+.journal-editor-textarea {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  padding: 1.25rem;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  background: white;
+  min-height: 20rem;
+  resize: vertical;
+  transition: border 0.15s ease;
+}
+.journal-editor-textarea:focus {
+  outline: none;
+  border-color: #c084fc;
+}
+
+.journal-editor-preview {
+  background: white;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.journal-editor-preview-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.journal-editor-preview-content {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #334155;
+}
+
+.journal-editor-hint {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.75rem;
+}
+
+/* Markdown styles */
+.md-marker {
+  color: #cbd5e1;
+  font-size: 0.875em;
+}
+
+.md-h1, .md-h1-inline { font-size: 2rem; font-weight: 700; color: #1e293b; margin: 1rem 0; }
+.md-h2, .md-h2-inline { font-size: 1.5rem; font-weight: 700; color: #334155; margin: 0.875rem 0; }
+.md-h3, .md-h3-inline { font-size: 1.25rem; font-weight: 700; color: #475569; margin: 0.75rem 0; }
+.md-li, .md-li-inline { margin-left: 1.5rem; color: #64748b; }
+.md-hr { border: none; border-top: 2px solid #e2e8f0; margin: 1.5rem 0; }
+
+/* Reader */
+.journal-reader {
+  background: white;
+  border-radius: 1rem;
+  padding: 2.5rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.journal-reader-header {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.journal-reader-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.journal-reader-date {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.journal-reader-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.journal-reader-content {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #334155;
+}
+
+/* Modals */
+.journal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.journal-modal {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.journal-modal--danger {
+  border: 2px solid #fee2e2;
+}
+
+.journal-modal-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.journal-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.journal-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  transition: border 0.15s ease;
+}
+.journal-input:focus {
+  outline: none;
+  border-color: #c084fc;
+}
+
+/* Loading dots */
+.loading-dot {
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Modal transitions */
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
+}
+</style> -->
 
 <style scoped>
 /* ── Page ────────────────────────────────────────────────────────── */

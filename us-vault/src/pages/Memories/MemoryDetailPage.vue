@@ -6,28 +6,20 @@ import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { Edit2, Save, X, Plus, Trash2 } from 'lucide-vue-next'
 import { getMemoryApi, updateMemoryApi, deleteMemoryApi } from '../../api/memories'
 import { uploadMemoryMediaApi, deleteMemoryMediaApi } from '../../api/media'
-// import { useAuthStore } from '../../stores/authStore'
-// import { useVaultStore } from '../../stores/vaultStore'
+import { useAuthStore } from '../../stores/auth'
+import { useVaultStore } from '../../stores/vault'
+import { useMemoryStore } from '../../stores/memories'
 
 const route = useRoute()
 const router = useRouter()
 
-// ── Stores (mock for now) ──────────────────────────────────────────────────
-// const authStore = useAuthStore()
-// const vaultStore = useVaultStore()
-// const CURRENT_USER_ID = authStore.user?.id || 'user-001'
-// const PARTNER_NAME = vaultStore.partner_name || 'Partner'
+// ── Stores ──────────────────────────────────────────────────
+const authStore = useAuthStore()
+const vaultStore = useVaultStore()
+const memoryStore = useMemoryStore()
+const CURRENT_USER_ID = computed(() => authStore.user?.id || 'user-001')
+const PARTNER_NAME = computed(() => vaultStore.partnerName || 'Your Partner')
 
-const CURRENT_USER_ID = 'user-001' // Mock
-const PARTNER_NAME = 'Alex' // Mock
-
-// ── Mock Data Store ────────────────────────────────────────────────────────
-const ALL_MEMORIES = ref([
-  { id: 'mem-001', vault_id: 'v1', created_by: 'user-001', title: 'The Night We Got Caught in the Rain', content: 'We ran from the café to the car and you were laughing so hard you couldn\'t even open the door. Your hair was soaked and you looked absolutely unreal.', memory_date: '2025-02-10T19:30:00Z', created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), is_seed: false, media: [{ id: 'm1', file_url: 'https://picsum.photos/seed/rain/1200/700', file_type: 'image/jpeg' }] },
-  { id: 'mem-002', vault_id: 'v1', created_by: 'user-002', title: 'Sunday Morning Pancakes', content: 'Made them from scratch for the first time. Burned the first three. The fourth one came out perfect.', memory_date: '2025-01-28T10:15:00Z', created_at: '2025-01-28T10:15:00Z', is_seed: false, media: [{ id: 'm2', file_url: 'https://picsum.photos/seed/pancake/1200/700', file_type: 'image/jpeg' }] },
-  { id: 'mem-003', vault_id: 'v1', created_by: 'user-001', title: 'Museum Afternoon', content: 'You stood in front of that painting for eleven minutes. I timed it.', memory_date: '2025-01-15T14:00:00Z', created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), is_seed: false, media: [] },
-  { id: 'mem-004', vault_id: 'v1', created_by: 'user-002', title: 'First Grocery Run Together', content: 'We spent 40 minutes arguing about which pasta sauce to buy.', memory_date: '2025-01-03T16:45:00Z', created_at: '2025-01-03T16:45:00Z', is_seed: false, media: [] },
-])
 
 // ── State ──────────────────────────────────────────────────────────────────
 const memory = ref(null)
@@ -95,17 +87,43 @@ const videos = computed(() => {
 })
 
 // ── Navigation ─────────────────────────────────────────────────────────────
-const currentIndex = computed(() => 
-  ALL_MEMORIES.value.findIndex(m => m.id === route.params.id)
+
+const goNext = async () => {
+  if (nextMemory.value) {
+    router.push(`/memory/${nextMemory.value.id}`)
+    return
+  }
+
+  // Not in current page — try fetching more
+  if (memoryStore.page < memoryStore.totalPages) {
+    await memoryStore.fetchMemories(memoryStore.page + 1)
+
+    const updatedIndex = memoryStore.memories.findIndex(
+      m => m.id === route.params.id
+    )
+
+    const next = memoryStore.memories[updatedIndex + 1]
+
+    if (next) {
+      router.push(`/memory/${next.id}`)
+    }
+  }
+}
+
+const currentIndex = computed(() =>
+  memoryStore.memories.findIndex(m => m.id === route.params.id)
 )
 
-const prevMemory = computed(() => 
-  currentIndex.value > 0 ? ALL_MEMORIES.value[currentIndex.value - 1] : null
+const prevMemory = computed(() =>
+  currentIndex.value > 0
+    ? memoryStore.memories[currentIndex.value - 1]
+    : null
 )
 
-const nextMemory = computed(() => 
-  currentIndex.value < ALL_MEMORIES.value.length - 1 
-    ? ALL_MEMORIES.value[currentIndex.value + 1] 
+const nextMemory = computed(() =>
+  currentIndex.value >= 0 &&
+  currentIndex.value < memoryStore.memories.length - 1
+    ? memoryStore.memories[currentIndex.value + 1]
     : null
 )
 
@@ -115,7 +133,9 @@ const initializeEditForm = () => {
     editForm.value = {
       title: memory.value.title,
       content: memory.value.content,
-      media: [...memory.value.media]
+            media: Array.isArray(memory.value.media)
+        ? [...memory.value.media]
+        : []
     }
   }
 }
@@ -357,10 +377,11 @@ onMounted(() => {
                   </svg>
                 </button>
                 <span class="detail-body text-xs text-gray-400 px-2">
-                  {{ currentIndex + 1 }} / {{ ALL_MEMORIES.length }}
+                  {{ currentIndex + 1 }} / {{ memoryStore.memories.length }}
                 </span>
-                <button @click="nextMemory && router.push(`/memories/${nextMemory.id}`)"
-                        :disabled="!nextMemory"
+                <button 
+                  @click="goNext"
+                  :disabled="!nextMemory && memoryStore.page >= memoryStore.totalPages"
                         :class="['pag-btn-sm', !nextMemory ? 'opacity-30 cursor-not-allowed' : 'hover:bg-rose-50 hover:text-rose-500']">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="9 18 15 12 9 6"/>
@@ -602,7 +623,7 @@ onMounted(() => {
               <div>
                 <p class="detail-body text-xs text-gray-400 uppercase tracking-wide mb-1">Media</p>
                 <p class="detail-body text-gray-700 font-semibold">
-                  {{ memory.media.length === 0 ? 'None' : `${images.length} image${images.length !== 1 ? 's' : ''}${videos.length > 0 ? `, ${videos.length} video${videos.length !== 1 ? 's' : ''}` : ''}` }}
+                  {{ (memory.media?.length ?? 0) === 0 ? 'None' : `${images.length} image${images.length !== 1 ? 's' : ''}${videos.length > 0 ? `, ${videos.length} video${videos.length !== 1 ? 's' : ''}` : ''}` }}
                 </p>
               </div>
             </div>
@@ -623,7 +644,9 @@ onMounted(() => {
             </button>
             <div v-else class="flex-1" style="max-width: 260px;"></div>
 
-            <button v-if="nextMemory" @click="router.push(`/memories/${nextMemory.id}`)"
+            <button 
+                v-if="nextMemory || memoryStore.page < memoryStore.totalPages"
+                @click="goNext"
                     class="flex-1 flex items-center justify-end gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-rose-200 hover:shadow-md transition-all group text-right ml-auto"
                     style="max-width: 260px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
               <div class="min-w-0">

@@ -13,7 +13,7 @@ const router = useRouter()
 const seedId = route.params.id
 
 // ── State ──────────────────────────────────────────────────────────────────
-const seed = ref(null)
+const seed = computed(() => seedStore.currentSeed)
 const isLoading = ref(true)
 const isSaving = ref(false)
 const error = ref(null)
@@ -74,9 +74,11 @@ const formatDate = (iso) => {
 const initializeForm = () => {
   if (seed.value) {
     editForm.value = {
-      title: seed.value.title,
-      content: seed.value.content,
-      media: [...seed.value.media]
+      title: seed.value.title || '',
+      content: seed.value.content || '',
+      media: Array.isArray(seed.value.media)
+        ? [...seed.value.media]
+        : []
     }
   }
 }
@@ -113,7 +115,7 @@ const handleMediaSelect = async (event) => {
 
 const removeMedia = async (mediaId) => {
   try {
-    await seedStore.deleteSeedMedia(mediaId)
+    await seedStore.deleteMedia(mediaId)
     editForm.value.media = editForm.value.media.filter(m => m.id !== mediaId)
   } catch (err) {
     error.value = err?.response?.data?.detail || 'Failed to delete media'
@@ -176,14 +178,13 @@ onMounted(async () => {
   error.value = null
 
   try {
-    const data = await seedStore.fetchSeed(seedId)
+    await seedStore.fetchSeed(seedId)
 
-    if (!data) {
+    if (!seedStore.currentSeed) {
       error.value = 'Seed not found'
       return
     }
 
-    seed.value = data
     initializeForm()
   } catch (err) {
     error.value = err?.response?.data?.detail || 'Failed to load seed'

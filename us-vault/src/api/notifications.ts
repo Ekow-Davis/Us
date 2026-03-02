@@ -5,7 +5,7 @@ export const getNotificationsApi = (
   page: number = 1,
   page_size: number = 10
 ) => {
-  return api.get("/notifications", {
+  return api.get("/notifications/", {
     params: { page, page_size }
   })
 }

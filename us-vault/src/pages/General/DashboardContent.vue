@@ -4,15 +4,21 @@ import { Heart, } from 'lucide-vue-next';
 import { Sparkles } from 'lucide-vue-next';
 import { Calendar } from 'lucide-vue-next';
 import { Clock } from 'lucide-vue-next';
-import FlowerFieldOverlay from './FlowerFieldOverlay.vue';
-import { getAllSeedsApi } from '../../api/seeds'
-import { listMemoriesApi } from '../../api/memories'
+// import FlowerFieldOverlay from './FlowerFieldOverlay.vue';
+
+import { useVaultStore } from '../../stores/vault'
+import { useSeedStore } from '../../stores/seed'
+import { useMemoryStore } from '../../stores/memories'
+
+const vaultStore = useVaultStore()
+const seedStore = useSeedStore()
+const memoryStore = useMemoryStore()
 
 // State
 const upcomingBlooms = ref([]);
 const recentMemories = ref([]);
-const signalCount = ref(0);
-const showFlowers = ref(false);
+// const signalCount = ref(0);
+// const showFlowers = ref(false);
 const currentTime = ref(new Date());
 
 // Countdown state
@@ -36,23 +42,21 @@ const flipSeconds = ref(false);
 // Api Calls
 const loadDashboardData = async () => {
   try {
-    const [seedsRes, memoriesRes] = await Promise.all([
-      getAllSeedsApi(),
-      listMemoriesApi({ page: 1, page_size: 5 })
+    await Promise.all([
+      vaultStore.fetchVault(),
+      seedStore.fetchAllSeeds(1, 10),
+      memoryStore.fetchMemories(1)
     ])
 
-    // Only scheduled seeds that haven’t bloomed yet
-    upcomingBlooms.value = seedsRes.items
+    // Seeds from store
+    upcomingBlooms.value = seedStore.seeds
       .filter(seed => seed.status === 'scheduled')
       .sort((a, b) => new Date(a.bloom_at) - new Date(b.bloom_at))
 
-    // Recent memories sorted newest first
-    recentMemories.value = memoriesRes.items
+    // Memories from store
+    recentMemories.value = memoryStore.memories
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 5)
-
-    // Optional: if you later implement signals
-    signalCount.value = 0
 
   } catch (err) {
     console.error('Dashboard load failed:', err)
@@ -198,7 +202,7 @@ onUnmounted(() => {
 <template>
   <div class="min-h-screen p-2">
     <!-- Flower Field Overlay (only shows if signals exist) -->
-    <FlowerFieldOverlay v-if="showFlowers" :signal-count="signalCount" />
+    <!-- <FlowerFieldOverlay v-if="showFlowers" :signal-count="signalCount" /> -->
 
     <!-- Countdown Timer Section -->
     <div class="countdown-section py-16 px-4">
@@ -390,7 +394,7 @@ onUnmounted(() => {
         <!-- Right Column: Recent Memories + Signals -->
         <div class="lg:col-span-1 space-y-6">
           
-          <div v-if="signalCount > 0" class="bg-linear-to-br from-indigo-900 to-purple-900 rounded-2xl shadow-lg p-6 text-white">
+          <!-- <div v-if="signalCount > 0" class="bg-linear-to-br from-indigo-900 to-purple-900 rounded-2xl shadow-lg p-6 text-white">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                 <Sparkles :size="20" class="text-yellow-300 animate-pulse" />
@@ -400,7 +404,7 @@ onUnmounted(() => {
                 <p class="text-lg font-semibold">{{ signalCount }} thinking of you</p>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">Recent Memories</h3>
