@@ -59,15 +59,15 @@ const handleRegister = async () => {
 
     // Register
     await registerApi({
-      email,
-      password,
-      display_name
+      email: registerForm.value.email,
+      password: registerForm.value.password,
+      display_name: registerForm.value.display_name
     })
 
     // Auto-login after successful registration
     await auth.login({
-      email,
-      password
+      email: registerForm.value.email,
+      password: registerForm.value.password
     })
 
     router.push('/registration-transfer')
