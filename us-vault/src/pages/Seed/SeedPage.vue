@@ -1,83 +1,125 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { useSeedStore } from '../../stores/seed'
+import { useVaultStore } from '../../stores/vaultStore'
+import { useAuthStore } from '../../stores/authStore'
 
 const router = useRouter()
 const seedStore = useSeedStore()
-const CURRENT_USER_ID = 'user-001'
+const vaultStore = useVaultStore()
+const authStore = useAuthStore()
 
+// ── State ──────────────────────────────────────────────────────────────────
 const seedDetails = ref(null)
+const mySeeds = ref([]) // Seeds created by current user
+const now = ref(new Date())
 
-// ── Mock API State ──────────────────────────────────────────────────────────
-const allSeeds = computed(() => seedStore.seeds)
+// Update time every 30 seconds
+setInterval(() => { now.value = new Date() }, 30000)
 
-const seedSummary = computed(() => seedStore.summary)
+// ── Computed ───────────────────────────────────────────────────────────────
+const CURRENT_USER_ID = computed(() => authStore.user?.id || 'user-001')
+const PARTNER_NAME = computed(() => vaultStore.partnerName || 'Your Partner')
+
 const isLoading = computed(() => seedStore.isLoading)
 
+// All seeds from store (excludes cancelled automatically from API)
+const allSeeds = computed(() => seedStore.seeds)
 
-// ── Lifecycle Computed ──────────────────────────────────────────────────────
-const now = ref(new Date())
-setInterval(() => { now.value = new Date() }, 30000) // Update every 30s
+// Only show scheduled seeds (growing + ready to bloom)
+// Do NOT show bloomed seeds or cancelled seeds
+const scheduledSeeds = computed(() => 
+  allSeeds.value.filter(s => s.status === 'scheduled')
+)
 
+// Growing seeds (not yet ready)
 const growingSeeds = computed(() => 
-  allSeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) > now.value)
+  scheduledSeeds.value.filter(s => new Date(s.bloom_at) > now.value)
 )
 
+// Ready to bloom seeds
 const readySeeds = computed(() => 
-  allSeeds.value.filter(s => s.status === 'scheduled' && new Date(s.bloom_at) <= now.value)
+  scheduledSeeds.value.filter(s => new Date(s.bloom_at) <= now.value)
 )
 
-const bloomedSeeds = computed(() => 
-  allSeeds.value.filter(s => s.status === 'bloomed')
-)
+// Summary for badges
+const seedSummary = computed(() => ({
+  total: scheduledSeeds.value.length,
+  growing: growingSeeds.value.length,
+  ready: readySeeds.value.length
+}))
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// Check if seed is owned by current user
+const isOwnSeed = (seed) => {
+  return mySeeds.value.some(mySeed => mySeed.id === seed.id)
+}
+
+// Get author label
+const getAuthorLabel = (seed) => {
+  return isOwnSeed(seed) ? 'You' : PARTNER_NAME.value
+}
+
+// ── Pagination ─────────────────────────────────────────────────────────────
 const perPage = ref(6)
 const currentPage = ref(1)
-const totalPages = computed(() => seedStore.totalPages)
-const paginatedSeeds = computed(() => allSeeds.paginatedSeeds)
+
+const totalPages = computed(() => 
+  Math.ceil(scheduledSeeds.value.length / perPage.value)
+)
+
+const paginatedSeeds = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value
+  return scheduledSeeds.value.slice(start, start + perPage.value)
+})
+
 const pageNumbers = computed(() => {
-  const pages = [], total = totalPages.value, current = currentPage.value
-  if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i) }
-  else {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
     pages.push(1)
     if (current > 3) pages.push('...')
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i)
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i)
+    }
     if (current < total - 2) pages.push('...')
     pages.push(total)
   }
+  
   return pages
 })
-watch(perPage, () => { currentPage.value = 1 })
-const goToPage = async (p) => {
+
+const goToPage = (p) => {
   if (typeof p === 'number' && p >= 1 && p <= totalPages.value) {
     currentPage.value = p
-    await seedStore.fetchAllSeeds(p, perPage.value)
   }
 }
 
-// ── Ready Bloom Modal ───────────────────────────────────────────────────────
+// ── Bloom Modal ────────────────────────────────────────────────────────────
 const showReadyBloomModal = ref(false)
 const currentReadySeedIndex = ref(0)
 const isViewing = ref(false)
-const hasBloomedCurrent = ref(false) // Track if current seed has been bloomed
+const hasBloomedCurrent = ref(false)
 
 const currentReadySeed = computed(() => readySeeds.value[currentReadySeedIndex.value] || null)
 
 const openReadyBloom = async (seed) => {
   try {
     seedDetails.value = await seedStore.fetchSeed(seed.id)
-
+    
     const idx = readySeeds.value.findIndex(s => s.id === seed.id)
     currentReadySeedIndex.value = idx >= 0 ? idx : 0
-
+    
     hasBloomedCurrent.value = false
     showReadyBloomModal.value = true
   } catch (err) {
-    console.error('Failed to load seed details')
+    console.error('Failed to load seed details:', err)
   }
 }
 
@@ -88,17 +130,16 @@ const closeReadyBloom = () => {
 
 const handleViewSeed = async () => {
   if (!currentReadySeed.value || isViewing.value) return
-
+  
   isViewing.value = true
   try {
-    const res = await seedStore.bloomSeed(currentReadySeed.value.id)
-
+    await seedStore.bloomSeed(currentReadySeed.value.id)
     hasBloomedCurrent.value = true
-
-    // Refresh everything after bloom
+    
+    // Refresh data
     await Promise.all([
-      seedStore.fetchAllSeeds(currentPage.value, perPage.value),
-      seedStore.fetchActiveSeeds(),
+      seedStore.fetchAllSeeds(1, 50), // Fetch more to cover pagination
+      seedStore.fetchMySeeds(1, 50),
       seedStore.fetchSummary()
     ])
   } catch (err) {
@@ -111,40 +152,40 @@ const handleViewSeed = async () => {
 const nextReadySeed = () => {
   if (currentReadySeedIndex.value < readySeeds.value.length - 1) {
     currentReadySeedIndex.value++
-    hasBloomedCurrent.value = false // Reset for next seed
+    hasBloomedCurrent.value = false
   }
 }
 
 const prevReadySeed = () => {
   if (currentReadySeedIndex.value > 0) {
     currentReadySeedIndex.value--
-    hasBloomedCurrent.value = false // Reset for previous seed
+    hasBloomedCurrent.value = false
   }
 }
 
-// ── Navigate to Memory ──────────────────────────────────────────────────────
+// ── Navigation ─────────────────────────────────────────────────────────────
 const viewMemory = (memoryId) => {
   if (memoryId) {
     router.push(`/memories/${memoryId}`)
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const truncate = (text, max = 100) => !text ? '' : text.length > max ? text.slice(0, max) + '…' : text
+// ── Helpers ────────────────────────────────────────────────────────────────
+const truncate = (text, max = 40) => !text ? '' : text.length > max ? text.slice(0, max) + '…' : text
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-const isOwn = (seed) => seed.created_by === CURRENT_USER_ID
 
 const getLifecycleStatus = (seed) => {
-  if (seed.status === 'bloomed') return 'bloomed'
-  if (seed.status === 'scheduled' && new Date(seed.bloom_at) <= now.value) return 'ready'
+  if (new Date(seed.bloom_at) <= now.value) return 'ready'
   return 'growing'
 }
 
 const timeUntilBloom = (bloomAt) => {
   const diff = new Date(bloomAt) - now.value
   if (diff <= 0) return 'Ready to bloom'
+  
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  
   if (days > 0) return `${days}d ${hours}h`
   return `${hours}h`
 }
@@ -157,19 +198,25 @@ const bloomProgress = (seed) => {
   return Math.max(0, Math.min(100, (elapsed / total) * 100))
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Lifecycle ──────────────────────────────────────────────────────────────
 onMounted(async () => {
-  isLoading.value = true
   try {
+    // Fetch vault info for partner name
+    await vaultStore.fetchVault()
+    
+    // Fetch all seeds and user's seeds
     await Promise.all([
-      seedStore.fetchAllSeeds(currentPage.value, perPage.value),
-      seedStore.fetchActiveSeeds(),
-      seedStore.fetchSummary()
+      seedStore.fetchAllSeeds(1, 50),
+      seedStore.fetchMySeeds(1, 50)
     ])
+    
+    // Store user's seeds for comparison
+    mySeeds.value = seedStore.seeds
+    
+    // Refetch all seeds after getting my seeds
+    await seedStore.fetchAllSeeds(1, 50)
   } catch (error) {
     console.error('Failed to load seeds:', error)
-  } finally {
-    isLoading.value = false
   }
 })
 </script>
@@ -208,7 +255,7 @@ onMounted(async () => {
         <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 
           <!-- Loading State -->
-          <div v-if="isLoading" class="flex items-center justify-center min-h-100">
+          <div v-if="isLoading" class="flex items-center justify-center min-h-100px">
             <div class="flex flex-col items-center gap-3">
               <div class="flex gap-1">
                 <span class="w-2 h-2 rounded-full bg-indigo-400 loading-dot" style="animation-delay:0s"></span>
@@ -225,9 +272,9 @@ onMounted(async () => {
               <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
                   <p class="seed-sub text-xs text-indigo-500 uppercase tracking-widest mb-1">Shared Vault</p>
-                  <h1 class="seed-display text-4xl md:text-5xl text-slate-900">Seeds</h1>
+                  <h1 class="seed-display text-4xl md:text-5xl text-slate-900">Scheduled Seeds</h1>
                   <div class="flex flex-wrap items-center gap-3 mt-2">
-                    <p class="seed-body text-sm text-slate-500">{{ seedSummary.total }} seeds planted</p>
+                    <p class="seed-body text-sm text-slate-500">{{ seedSummary.total }} scheduled seeds</p>
                     <span v-if="seedSummary.ready > 0"
                           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold seed-body bg-indigo-600 text-white animate-pulse-soft cursor-pointer hover:bg-indigo-700 transition-colors"
                           @click="readySeeds.length > 0 && openReadyBloom(readySeeds[0])">
@@ -239,11 +286,6 @@ onMounted(async () => {
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                       {{ seedSummary.growing }} growing
                     </span>
-                    <span v-if="seedSummary.bloomed > 0"
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold seed-body bg-pink-50 text-pink-700 border border-pink-200">
-                      <span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
-                      {{ seedSummary.bloomed }} bloomed
-                    </span>
                   </div>
                 </div>
                 
@@ -251,7 +293,7 @@ onMounted(async () => {
                 <div class="flex items-center gap-3 bg-white rounded-xl px-4 py-2.5 border border-indigo-100 shadow-sm self-start sm:self-auto">
                   <span class="seed-body text-xs text-slate-500 uppercase tracking-wide">Show</span>
                   <div class="flex gap-1">
-                    <button v-for="n in [5, 6, 8, 10]" :key="n" @click="perPage = n"
+                    <button v-for="n in [6, 9, 12, 15]" :key="n" @click="perPage = n; currentPage = 1"
                             :class="['px-3 py-1 rounded-lg text-xs font-semibold transition-all seed-body',
                                     perPage === n ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-indigo-50']">{{ n }}</button>
                   </div>
@@ -266,9 +308,26 @@ onMounted(async () => {
               </div>
             </div>
 
+            <!-- Empty State -->
+            <div v-if="scheduledSeeds.length === 0" class="flex flex-col items-center justify-center py-20 px-4">
+              <div class="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
+                <svg width="40" height="50" viewBox="0 0 60 80" class="opacity-40">
+                  <ellipse cx="30" cy="38" rx="14" ry="22" fill="#6366f1"/>
+                  <line x1="30" y1="60" x2="30" y2="78" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3 class="seed-display text-xl text-slate-700 mb-2">No scheduled seeds</h3>
+              <p class="seed-body text-sm text-slate-500 text-center max-w-sm mb-4">
+                Plant a seed to schedule a future surprise
+              </p>
+              <button @click="router.push('/my-seeds')" class="px-6 py-2.5 rounded-xl bg-indigo-600 text-white seed-body text-sm font-semibold hover:bg-indigo-700 transition">
+                Go to My Seeds
+              </button>
+            </div>
+
             <!-- Top Pagination -->
-            <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-              <p class="seed-body text-xs text-slate-500">Page {{ currentPage }} of {{ totalPages }} · {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, allSeeds.length) }} of {{ allSeeds.length }}</p>
+            <div v-else-if="totalPages > 1" class="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <p class="seed-body text-xs text-slate-500">Page {{ currentPage }} of {{ totalPages }} · {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, scheduledSeeds.length) }} of {{ scheduledSeeds.length }}</p>
               <div class="flex items-center gap-1">
                 <button @click="goToPage(currentPage-1)" :disabled="currentPage===1" :class="['pag-btn', currentPage===1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -284,39 +343,21 @@ onMounted(async () => {
             </div>
 
             <!-- Seeds Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
+            <div v-if="scheduledSeeds.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
               <article v-for="(seed, idx) in paginatedSeeds" :key="seed.id"
                       class="seed-card group relative bg-white rounded-2xl overflow-hidden border border-indigo-50 transition-all duration-300 hover:-translate-y-1"
                       :style="`animation-delay:${idx*60}ms`">
 
                 <!-- Top strip -->
                 <div class="h-0.5 w-full" 
-                    :style="getLifecycleStatus(seed) === 'bloomed' 
-                      ? 'background:linear-gradient(90deg,#6366f1,#818cf8,#ec4899)' 
-                      : getLifecycleStatus(seed) === 'ready'
+                    :style="getLifecycleStatus(seed) === 'ready'
                       ? 'background:linear-gradient(90deg,#6366f1,#c084fc)'
                       : 'background:linear-gradient(90deg,#6366f1,#818cf8)'"></div>
 
                 <!-- Status Icon -->
                 <div class="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center">
-                  <!-- Bloomed -->
-                  <button v-if="getLifecycleStatus(seed) === 'bloomed'"
-                          @click="viewMemory(seed.memory_id)"
-                          class="bloom-bud-btn"
-                          title="View memory">
-                    <svg width="36" height="36" viewBox="0 0 100 100" class="bloom-flower-icon">
-                      <g transform="translate(50,50)">
-                        <ellipse rx="11" ry="32" fill="#818cf8" opacity="0.85" transform="rotate(0)"/>
-                        <ellipse rx="11" ry="32" fill="#6366f1" opacity="0.8" transform="rotate(45)"/>
-                        <ellipse rx="11" ry="32" fill="#818cf8" opacity="0.85" transform="rotate(90)"/>
-                        <ellipse rx="11" ry="32" fill="#6366f1" opacity="0.8" transform="rotate(135)"/>
-                        <circle r="11" fill="#fbbf24"/>
-                      </g>
-                    </svg>
-                  </button>
-                  
                   <!-- Ready -->
-                  <button v-else-if="getLifecycleStatus(seed) === 'ready'"
+                  <button v-if="getLifecycleStatus(seed) === 'ready'"
                           @click="openReadyBloom(seed)"
                           class="ready-pulse"
                           title="Ready to bloom!">
@@ -341,34 +382,30 @@ onMounted(async () => {
                   <!-- Author + status -->
                   <div class="flex items-center gap-2 mb-3 flex-wrap">
                     <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold seed-body border',
-                                  isOwn(seed) ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-pink-50 text-pink-600 border-pink-100']">
-                      <span :class="['w-1.5 h-1.5 rounded-full', isOwn(seed) ? 'bg-indigo-400' : 'bg-pink-400']"></span>
-                      {{ isOwn(seed) ? 'You' : 'Partner' }}
+                                  isOwnSeed(seed) ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-pink-50 text-pink-600 border-pink-100']">
+                      <span :class="['w-1.5 h-1.5 rounded-full', isOwnSeed(seed) ? 'bg-indigo-400' : 'bg-pink-400']"></span>
+                      {{ getAuthorLabel(seed) }}
                     </span>
                     <span :class="['inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs seed-body font-semibold',
-                                  getLifecycleStatus(seed) === 'bloomed' ? 'bg-pink-100 text-pink-700' 
-                                  : getLifecycleStatus(seed) === 'ready' ? 'bg-purple-100 text-purple-700'
+                                  getLifecycleStatus(seed) === 'ready' ? 'bg-purple-100 text-purple-700'
                                   : 'bg-slate-100 text-slate-600']">
-                      {{ getLifecycleStatus(seed) === 'bloomed' ? '✦ Bloomed' 
-                        : getLifecycleStatus(seed) === 'ready' ? '◉ Ready' 
-                        : '◌ Growing' }}
+                      {{ getLifecycleStatus(seed) === 'ready' ? '◉ Ready' : '◌ Growing' }}
                     </span>
                   </div>
 
-                  <h2 class="seed-display text-lg text-slate-900 leading-snug mb-2 line-clamp-2">{{ seed.title }}</h2>
+                  <!-- Title (truncated shorter for mystery) -->
+                  <h2 class="seed-display text-lg text-slate-900 leading-snug mb-2 line-clamp-1">
+                    {{ truncate(seed.title, 40) }}
+                  </h2>
                   
-                  <!-- Content display logic -->
-                  <p v-if="getLifecycleStatus(seed) === 'bloomed'" 
-                    class="seed-body text-sm text-slate-600 leading-relaxed mb-4">
-                    {{ truncate(seed.content, 90) }}
-                  </p>
-                  <p v-else-if="getLifecycleStatus(seed) === 'ready'" 
-                    class="seed-body text-sm text-slate-400 italic leading-relaxed mb-4">
-                    Ready to bloom — open to reveal
+                  <!-- Content (always hidden for scheduled seeds - adds mystery) -->
+                  <p v-if="getLifecycleStatus(seed) === 'ready'" 
+                    class="seed-body text-sm text-purple-400 italic leading-relaxed mb-4">
+                    Ready to bloom — tap to reveal
                   </p>
                   <p v-else 
                     class="seed-body text-sm text-slate-400 italic leading-relaxed mb-4">
-                    Surprise for later…
+                    A surprise waiting to bloom…
                   </p>
 
                   <!-- Progress bar (only for growing) -->
@@ -385,30 +422,22 @@ onMounted(async () => {
 
                   <div class="flex items-center justify-between">
                     <span class="seed-body text-xs text-slate-400">
-                      {{ getLifecycleStatus(seed) === 'bloomed' ? 'Bloomed' : 'Blooms' }} {{ formatDate(seed.bloom_at) }}
+                      Blooms {{ formatDate(seed.bloom_at) }}
                     </span>
-                    <div>
-                      <button v-if="getLifecycleStatus(seed) === 'bloomed'"
-                              @click="viewMemory(seed.memory_id)"
-                              class="seed-body text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 transition-colors">
-                        View memory
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                      </button>
-                      <button v-else-if="getLifecycleStatus(seed) === 'ready'"
-                              @click="openReadyBloom(seed)"
-                              class="seed-body text-xs text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-1 transition-colors">
-                        Open bloom
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                      </button>
-                    </div>
+                    <button v-if="getLifecycleStatus(seed) === 'ready'"
+                            @click="openReadyBloom(seed)"
+                            class="seed-body text-xs text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-1 transition-colors">
+                      Open bloom
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
                   </div>
                 </div>
               </article>
             </div>
 
             <!-- Bottom Pagination -->
-            <div class="flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-indigo-50">
-              <p class="seed-body text-xs text-slate-500">Showing {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, allSeeds.length) }} of {{ allSeeds.length }} seeds</p>
+            <div v-if="scheduledSeeds.length > 0 && totalPages > 1" class="flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-indigo-50">
+              <p class="seed-body text-xs text-slate-500">Showing {{ (currentPage-1)*perPage+1 }}–{{ Math.min(currentPage*perPage, scheduledSeeds.length) }} of {{ scheduledSeeds.length }} seeds</p>
               <div class="flex items-center gap-1">
                 <button @click="goToPage(currentPage-1)" :disabled="currentPage===1" :class="['pag-btn', currentPage===1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-indigo-50 hover:text-indigo-600']">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -455,9 +484,9 @@ onMounted(async () => {
                   <!-- Author -->
                   <div class="flex items-center gap-2 mb-4">
                     <span :class="['inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold seed-body',
-                                  currentReadySeed.created_by === CURRENT_USER_ID ? 'bg-indigo-800 text-indigo-200' : 'bg-pink-900/60 text-pink-300']">
+                                  isOwnSeed(currentReadySeed) ? 'bg-indigo-800 text-indigo-200' : 'bg-pink-900/60 text-pink-300']">
                       <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse"></span>
-                      {{ currentReadySeed.created_by === CURRENT_USER_ID ? 'From You' : 'From Your Partner' }}
+                      From {{ getAuthorLabel(currentReadySeed) }}
                     </span>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold seed-body bg-purple-900/60 text-purple-300">
                       <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
@@ -522,7 +551,7 @@ onMounted(async () => {
                     <!-- View Memory CTA -->
                     <div class="mt-8 text-center">
                       <p class="seed-body text-indigo-300 text-sm mb-4">This seed has bloomed into a memory</p>
-                      <button @click="viewMemory(currentReadySeed.memory_id || `${currentReadySeed.id}`)"
+                      <button @click="viewMemory(currentReadySeed.memory_id)"
                               class="px-6 py-2.5 rounded-xl bg-linear-to-r from-pink-600 to-rose-600 text-white font-semibold seed-body hover:from-pink-500 hover:to-rose-500 transition-all shadow-lg">
                         View in Memories
                       </button>
@@ -537,7 +566,7 @@ onMounted(async () => {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                       <span class="hidden sm:inline">Previous</span>
                     </button>
-                    <span class="seed-body text-xs text-indigo-600 tracking-wide">{{ currentReadySeedIndex + 1 }} / {{ readySeeds.length }}</span>
+                    <span class="seed-body text-xs text-indigo-400 tracking-wide">{{ currentReadySeedIndex + 1 }} / {{ readySeeds.length }}</span>
                     <button @click="nextReadySeed" :disabled="currentReadySeedIndex === readySeeds.length - 1"
                             :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-sm seed-body font-semibold transition-all',
                                     currentReadySeedIndex === readySeeds.length - 1 ? 'opacity-30 cursor-not-allowed text-indigo-600' : 'text-indigo-300 hover:bg-indigo-800 hover:text-white']">
@@ -582,19 +611,13 @@ onMounted(async () => {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.line-clamp-2 {
+.line-clamp-1 {
   display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* ── Bloomed flower icon ── */
-.bloom-bud-btn { cursor: pointer; transition: transform 0.3s ease; }
-.bloom-bud-btn:hover { transform: scale(1.15) rotate(15deg); }
-.bloom-flower-icon { filter: drop-shadow(0 0 8px rgba(129,140,248,0.6)); animation: flowerSpin 8s linear infinite; }
-@keyframes flowerSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* ── Bloom reveal animation ── */
 .bloom-reveal {
@@ -612,6 +635,10 @@ onMounted(async () => {
 @keyframes flowerBloom {
   from { transform: scale(0.3) rotate(0deg); opacity: 0; }
   to { transform: scale(1) rotate(180deg); opacity: 1; }
+}
+@keyframes flowerSpin { 
+  from { transform: rotate(0deg); } 
+  to { transform: rotate(360deg); } 
 }
 
 /* ── Ready pulse ── */
