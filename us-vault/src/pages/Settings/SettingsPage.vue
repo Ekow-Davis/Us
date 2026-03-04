@@ -9,8 +9,6 @@ import { leaveVaultApi, joinVaultApi } from '../../api/vault'
 import { useRouter } from 'vue-router'
 import { watch } from 'vue'
 
-import { useAuthStore } from "@/stores/auth"
-
 const authStore = useAuthStore()
 
 
