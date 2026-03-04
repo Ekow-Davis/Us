@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router'
 import Sidebar from '../../components/layout/Sidebar.vue'
 import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { useSeedStore } from '../../stores/seed'
-import { useVaultStore } from '../../stores/vaultStore'
-import { useAuthStore } from '../../stores/authStore'
+import { useVaultStore } from '../../stores/vault'
+import { useAuthStore } from '../../stores/auth'
 
 const router = useRouter()
 const seedStore = useSeedStore()

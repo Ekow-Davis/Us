@@ -9,6 +9,8 @@ import { useAuthStore } from '../../stores/auth'
 const vault = ref(null)
 const isLoading = ref(true)
 
+const invitationCode = ref(null)
+
 const auth = useAuthStore()
 const user = computed(() => auth.user)
 
@@ -34,6 +36,10 @@ const loadVaultDetails = async () => {
 
     const res = await getVaultDetailsApi()
     vault.value = res.data
+    
+    // Fetch invitation code
+    const codeRes = await getMyVaultApi()
+    invitationCode.value = codeRes.data.invite_code // or however the API returns it
 
   } catch (err) {
     console.error("Failed to load vault details")
@@ -393,6 +399,39 @@ onMounted(loadVaultDetails)
               </div>
             </div>
           </div>
+
+          <!-- ── Invitation Code Card ───────────────────────────────── -->
+            <div class="rounded-2xl bg-linear-to-br from-purple-900 to-indigo-900 border border-purple-700 p-6 mb-8"
+                style="box-shadow: 0 8px 32px rgba(124,58,237,0.3);">
+              <div class="flex items-center gap-2 mb-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <h3 class="vault-display text-lg text-purple-100">Vault Invitation Code</h3>
+              </div>
+              
+              <p class="vault-body text-purple-300 text-sm mb-4">
+                Share this code with your partner to grant them access to the vault
+              </p>
+              
+              <div class="flex items-center gap-3">
+                <div class="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-purple-700/50 backdrop-blur-sm">
+                  <p class="font-mono text-xl text-white tracking-wider select-all text-center">
+                    {{ invitationCode || '••••••••' }}
+                  </p>
+                </div>
+                
+                <button @click="copyInvitationCode" 
+                        class="px-4 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  <span class="vault-body text-sm font-semibold">Copy</span>
+                </button>
+              </div>
+            </div>
 
           <!-- ── Vault ID Footer ─────────────────────────────────── -->
           <div class="text-center py-6 border-t border-gray-100">

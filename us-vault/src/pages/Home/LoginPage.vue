@@ -123,6 +123,10 @@ const handleRegister = async () => {
           <p>
             <router-link to="/forgot-password" class="m-2 text-blue-400 underline">Forgot your password?</router-link>
           </p>
+
+          <button class="btn-pink">
+              <router-link to="/invitation-code" class="m-2 text-blue-400 underline">Have an Invitation Code? Click Here if first time</router-link>
+          </button>
         </form>
 
         <!-- REGISTER -->
