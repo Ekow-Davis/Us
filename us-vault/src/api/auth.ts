@@ -68,3 +68,9 @@ export const changeEmailApi = (data: {
 }) => {
   return api.post("/auth/change-email", data)
 }
+
+export const updateDisplayNameApi = (displayName: string) => {
+  return api.patch("/users/me/display-name", {
+    display_name: displayName
+  })
+}

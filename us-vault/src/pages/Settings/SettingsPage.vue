@@ -5,8 +5,15 @@ import InactivityOverlay from '../../components/layout/InactivityOverlay.vue'
 import { useAuthStore } from '../../stores/auth'
 import { changeEmailApi, changePasswordApi } from '../../api/auth'
 import { leaveVaultApi, joinVaultApi } from '../../api/vault'
+
 import { useRouter } from 'vue-router'
 import { watch } from 'vue'
+
+import { useAuthStore } from "@/stores/auth"
+
+const authStore = useAuthStore()
+
+
 
 // ── Active tab ────────────────────────────────────────────────────────────────
 const activeTab = ref('general')
@@ -160,11 +167,20 @@ const deletingAccount   = ref(false)
 
 const saveName = async () => {
   savingName.value = true
-  await new Promise(r => setTimeout(r, 800))
-  savingName.value = false
-  successName.value = true
-  console.log('Display name updated:', displayName.value)
-  setTimeout(() => { successName.value = false }, 3000)
+
+  try {
+    await authStore.updateDisplayName(displayName.value)
+
+    successName.value = true
+  } catch (err) {
+    console.error("Failed to update name", err)
+  } finally {
+    savingName.value = false
+  }
+
+  setTimeout(() => {
+    successName.value = false
+  }, 3000)
 }
 
 const deleteAccount = async () => {

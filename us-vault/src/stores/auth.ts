@@ -5,6 +5,7 @@ import {
   getMeApi,
   logoutApi
 } from "../api/auth"
+import { updateDisplayNameApi } from "../api/auth"
 import { useVaultStore } from "./vault";
 
 export const useAuthStore = defineStore("auth", {
@@ -39,6 +40,14 @@ export const useAuthStore = defineStore("auth", {
         this.accessToken = null
         this.user = null
         return false
+      }
+    },
+
+    async updateDisplayName(displayName: string) {
+      const res = await updateDisplayNameApi(displayName)
+
+      if (this.user) {
+        this.user.display_name = res.data.display_name
       }
     },
 

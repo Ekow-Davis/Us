@@ -238,6 +238,26 @@ def change_email(
 
     return {"message": "Email updated successfully"}
 
+@router.patch("/users/me/display-name")
+def update_display_name(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    display_name = payload.get("display_name")
+
+    if not display_name or len(display_name.strip()) < 2:
+        return {"error": "Display name too short"}
+
+    current_user.display_name = display_name.strip()
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "id": current_user.id,
+        "display_name": current_user.display_name
+    }
+
 @router.post("/logout")
 def logout(
     request: Request,
@@ -258,3 +278,4 @@ def logout(
     response.delete_cookie("refresh_token")
 
     return {"message": "Logged out"}
+
