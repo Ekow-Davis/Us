@@ -30,6 +30,18 @@ const otherPerson = computed(() => {
   return partnerName.value
 })
 
+const copyInvitationCode = async () => {
+  if (!invitationCode.value) return
+  
+  try {
+    await navigator.clipboard.writeText(invitationCode.value)
+    // Optional: Show a toast notification
+    alert('Invitation code copied to clipboard!')
+  } catch (err) {
+    console.error('Failed to copy:', err)
+  }
+}
+
 const loadVaultDetails = async () => {
   try {
     isLoading.value = true
