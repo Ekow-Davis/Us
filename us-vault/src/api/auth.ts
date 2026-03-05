@@ -70,7 +70,7 @@ export const changeEmailApi = (data: {
 }
 
 export const updateDisplayNameApi = (displayName: string) => {
-  return api.patch("/users/me/display-name", {
+  return api.patch("/auth/users/me/display-name", {
     display_name: displayName
   })
 }
