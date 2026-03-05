@@ -11,8 +11,6 @@ import { watch } from 'vue'
 
 const authStore = useAuthStore()
 
-
-
 // ── Active tab ────────────────────────────────────────────────────────────────
 const activeTab = ref('general')
 

@@ -22,7 +22,7 @@ from app.config.database import get_db
 from app.config.security import hash_password, verify_password, create_access_token
 from app.config.config import settings
 
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UpdateDisplayNameRequest, UpdateDisplayNameResponse
 from app.schemas.auth import ChangeEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -238,26 +238,35 @@ def change_email(
 
     return {"message": "Email updated successfully"}
 
-@router.patch("/users/me/display-name")
+@router.patch(
+    "/users/me/display-name",
+    response_model=UpdateDisplayNameResponse,
+    status_code=status.HTTP_200_OK
+)
 def update_display_name(
-    payload: dict,
+    payload: UpdateDisplayNameRequest, 
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    display_name = payload.get("display_name")
-
-    if not display_name or len(display_name.strip()) < 2:
-        return {"error": "Display name too short"}
-
-    current_user.display_name = display_name.strip()
-    db.commit()
-    db.refresh(current_user)
-
-    return {
-        "id": current_user.id,
-        "display_name": current_user.display_name
-    }
-
+    """Update the current user's display name"""
+    
+    # The display_name is already validated and stripped by Pydantic
+    current_user.display_name = payload.display_name
+    
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update display name"
+        )
+    
+    return UpdateDisplayNameResponse(
+        id=str(current_user.id),
+        display_name=current_user.display_name
+    )
 @router.post("/logout")
 def logout(
     request: Request,
